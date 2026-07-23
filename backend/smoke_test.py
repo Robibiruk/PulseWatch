@@ -66,10 +66,12 @@ async def main():
         await process_monitor(db, m)
         m = await db.get(Monitor, mon["id"])
         assert m.status == "down", f"expected down after threshold, got {m.status}"
-        assert m.current_incident_id is not None
-        print("after 2 failures: status=down, incident opened ✓")
+        open_inc = (await db.execute(
+            select(Incident).where(Incident.monitor_id == mon["id"], Incident.resolved_at.is_(None))
+        )).scalars().first()
+        assert open_inc is not None
+        inc = open_inc
 
-        inc = await db.get(Incident, m.current_incident_id)
         print("incident reason:", inc.reason)
         print("AI explanation present:", bool(inc.ai_explanation))
         assert inc.ai_explanation, "AI explanation missing"
@@ -87,7 +89,9 @@ async def main():
         await process_monitor(db, m)
         m = await db.get(Monitor, mon["id"])
         assert m.status == "up", f"expected recovery to up, got {m.status}"
-        inc = await db.get(Incident, m.current_incident_id) if m.current_incident_id else None
+        inc = (await db.execute(
+            select(Incident).where(Incident.monitor_id == mon["id"], Incident.resolved_at.is_(None))
+        )).scalars().first()
         print("after recovery tick: status=up ✓ ; incident resolved:", inc is None or inc.resolved_at is not None)
 
     # 5) checks persisted

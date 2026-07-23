@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     # OpenRouter (AI explanations)
     openrouter_api_key: str = ""
-    openrouter_model: str = "deepseek/deepseek-r1:free"
+    openrouter_model: str = "openai/gpt-oss-20b:free"
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -22,7 +22,9 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    monitors: Mapped[list["Monitor"]] = relationship(back_populates="owner")
+    monitors: Mapped[list["Monitor"]] = relationship(
+        back_populates="owner", cascade="all, delete-orphan"
+    )
 
 
 class Monitor(Base):
@@ -38,7 +40,6 @@ class Monitor(Base):
     # incident state machine
     status: Mapped[str] = mapped_column(String(16), default="up")  # up | down
     consecutive_failures: Mapped[int] = mapped_column(Integer, default=0)
-    current_incident_id: Mapped[int | None] = mapped_column(ForeignKey("incidents.id"), nullable=True)
     next_check: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -50,9 +51,6 @@ class Monitor(Base):
     incidents: Mapped[list["Incident"]] = relationship(
         back_populates="monitor", cascade="all, delete-orphan", order_by="Incident.started_at.desc()",
         foreign_keys="[Incident.monitor_id]",
-    )
-    current_incident: Mapped["Incident | None"] = relationship(
-        "Incident", foreign_keys="[Monitor.current_incident_id]"
     )
 
 

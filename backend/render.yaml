@@ -26,4 +26,4 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
-        sync: false
+        value: openai/gpt-oss-20b:free

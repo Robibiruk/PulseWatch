@@ -36,6 +36,16 @@ async def _get_due_monitors(db: AsyncSession) -> list[Monitor]:
     return list(result.scalars().all())
 
 
+async def _get_open_incident(db: AsyncSession, monitor_id: int) -> Incident | None:
+    """The current incident is the one with resolved_at IS NULL (no FK column needed)."""
+    res = await db.execute(
+        select(Incident).where(
+            Incident.monitor_id == monitor_id, Incident.resolved_at.is_(None)
+        )
+    )
+    return res.scalars().first()
+
+
 async def process_monitor(db: AsyncSession, monitor: Monitor) -> None:
     result = await check_site(monitor.url)
 
@@ -52,9 +62,9 @@ async def process_monitor(db: AsyncSession, monitor: Monitor) -> None:
     if result.status == "up":
         monitor.consecutive_failures = 0
         # resolve an open incident
-        if monitor.status == "down" and monitor.current_incident_id:
-            incident = await db.get(Incident, monitor.current_incident_id)
-            if incident and incident.resolved_at is None:
+        if monitor.status == "down":
+            incident = await _get_open_incident(db, monitor.id)
+            if incident:
                 incident.resolved_at = _now()
                 started = incident.started_at
                 if started.tzinfo is None:
@@ -63,7 +73,6 @@ async def process_monitor(db: AsyncSession, monitor: Monitor) -> None:
                     (incident.resolved_at - started).total_seconds() / 60, 1
                 )
                 await send_alert(format_recovery_alert(monitor.name, monitor.url, incident))
-            monitor.current_incident_id = None
         monitor.status = "up"
         monitor.last_checked = _now()
         monitor.next_check = _now() + timedelta(seconds=monitor.interval)
@@ -84,7 +93,6 @@ async def process_monitor(db: AsyncSession, monitor: Monitor) -> None:
         db.add(incident)
         await db.flush()  # get incident.id
         monitor.status = "down"
-        monitor.current_incident_id = incident.id
 
         explanation = await explain_incident(
             result.status_code, result.error, [result.status_code]
