@@ -1,0 +1,41 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # Database
+    database_url: str = "postgresql+asyncpg://user:pass@host/dbname"
+
+    # Auth
+    secret_key: str = "dev-insecure-change-me"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 1440
+
+    # CORS
+    cors_origins: str = "http://localhost:5173"
+
+    # Worker
+    poll_interval: int = 15
+    failure_threshold: int = 3
+    confirmation_delay: int = 10
+
+    # Telegram
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+
+    # Resend email
+    resend_api_key: str = ""
+    alert_from_email: str = "alerts@yourdomain.com"
+    alert_to_email: str = ""
+
+    # OpenRouter (AI explanations)
+    openrouter_api_key: str = ""
+    openrouter_model: str = "deepseek/deepseek-r1:free"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+
+settings = Settings()
