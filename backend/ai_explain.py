@@ -65,8 +65,13 @@ async def explain_incident(status_code: int | None, error: str | None, recent_co
                     },
                 )
                 if resp.status_code == 200:
-                    data = resp.json()
-                    return data["choices"][0]["message"]["content"].strip()
+                    try:
+                        data = resp.json()
+                        content = data["choices"][0]["message"]["content"]
+                        if isinstance(content, str):
+                            return content.strip()
+                    except Exception as e:  # noqa: BLE001
+                        print(f"[ai] OpenRouter response parse failed, falling back: {e}")
         except Exception as e:  # noqa: BLE001
             print(f"[ai] OpenRouter failed, falling back: {e}")
 

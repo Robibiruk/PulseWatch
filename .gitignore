@@ -13,3 +13,9 @@ frontend/.env
 
 # misc
 .DS_Store
+
+# Build artifacts
+*.tsbuildinfo
+
+# Reference design export (untracked design assets)
+stitch_pulsewatch_uptime_monitoring_platform/

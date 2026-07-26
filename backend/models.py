@@ -22,6 +22,11 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
+    # Telegram integration
+    telegram_chat_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    telegram_link_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    alerts_paused: Mapped[bool] = mapped_column(Boolean, default=False)
+
     monitors: Mapped[list["Monitor"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )

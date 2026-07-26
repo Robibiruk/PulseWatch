@@ -15,14 +15,18 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:5173"
 
-    # Worker
+    # Worker / scheduler
     poll_interval: int = 15
+    worker_concurrency: int = 20
+    no_worker: bool = False
     failure_threshold: int = 3
     confirmation_delay: int = 10
 
     # Telegram
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+    no_telegram_bot: bool = False
+    public_base_url: str = "http://localhost:8000"
 
     # Resend email
     resend_api_key: str = ""

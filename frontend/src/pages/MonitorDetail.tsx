@@ -1,15 +1,123 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import * as api from "../api";
-import UptimeBar from "../components/UptimeBar";
+import Icon from "../components/Icon";
+import { Shell, Topbar } from "../components/Layout";
 
 function fmtTime(t?: string) {
   if (!t) return "—";
   return new Date(t).toLocaleString();
 }
 
+function Bento({ label, value, sub, color }: any) {
+  return (
+    <div className="bento-card glass-2">
+      <div className="l">{label}</div>
+      <div className="v" style={color ? { color } : undefined}>{value}</div>
+      {sub && <div className="kpi-sub">{sub}</div>}
+    </div>
+  );
+}
+
+function ResponseChart({ checks }: { checks: any[] }) {
+  const [range, setRange] = useState<"1h" | "6h" | "24h">("24h");
+  const now = Date.now();
+  const window = range === "1h" ? 36e5 : range === "6h" ? 21.6e6 : 86.4e6;
+  const filtered = checks.filter((c) => new Date(c.checked_at).getTime() >= now - window);
+  const data = filtered.length ? filtered : checks;
+  const max = Math.max(1, ...data.map((c) => c.response_time || 0));
+  const avg = data.filter((c) => c.response_time != null).reduce((a: number, c: any) => a + c.response_time, 0) / Math.max(1, data.filter((c) => c.response_time != null).length);
+
+  return (
+    <div className="chart-card glass-2">
+      <div className="head">
+        <div>
+          <div className="kpi-label">Response Time</div>
+          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>
+            {data.find((c) => c.response_time != null) ? `${Math.round(avg)}ms avg` : "—"}
+          </div>
+        </div>
+        <div className="seg">
+          {(["1h", "6h", "24h"] as const).map((r) => (
+            <button key={r} className={range === r ? "active" : ""} onClick={() => setRange(r)}>{r}</button>
+          ))}
+        </div>
+      </div>
+      <div className="resp-chart">
+        {data.map((c, i) => {
+          const v = c.response_time != null ? (c.response_time / max) * 100 : 4;
+          return (
+            <i key={i} className={c.response_time != null && c.response_time === max ? "peak" : ""}
+              style={{ height: `${v}%`, background: c.status === "down" ? "var(--red)" : undefined }} />
+          );
+        })}
+      </div>
+      <div className="resp-axis">
+        <span>{range === "1h" ? "1h ago" : range === "6h" ? "6h ago" : "24h ago"}</span>
+        <span>now</span>
+      </div>
+    </div>
+  );
+}
+
+function UptimeBar({ checks }: { checks: any[] }) {
+  const segs = checks.slice(0, 60);
+  return (
+    <div>
+      <div className="uptime-bar">
+        {segs.length === 0 && <div className="muted">No checks yet.</div>}
+        {segs.map((c, i) => (
+          <i key={i} className={c.status === "down" ? "down" : !c.status ? "paused" : ""}
+            title={`${fmtTime(c.checked_at)} · ${c.status}${c.response_time != null ? " · " + Math.ceil(c.response_time) + "ms" : ""}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Timeline({ incidents }: { incidents: any[] }) {
+  if (!incidents.length) {
+    return (
+      <div className="info-card glass-2" style={{ textAlign: "center" }}>
+        <div style={{ color: "var(--green)", display: "flex", justifyContent: "center", marginBottom: 8 }}>
+          <Icon name="check-circle" size={28} />
+        </div>
+        <strong>No incidents recorded</strong>
+        <p className="muted" style={{ marginTop: 4 }}>This service has a clean history.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="timeline">
+      {incidents.map((inc) => {
+        const ongoing = !inc.resolved_at;
+        const dot = ongoing ? "red" : "green";
+        return (
+          <div className="tl-item" key={inc.id}>
+            <div className={`tl-dot ${dot}`}><Icon name={ongoing ? "alert" : "check"} /></div>
+            <div className="tl-head">
+              <span className="tl-title">
+                {inc.reason || (ongoing ? "Ongoing incident" : "Resolved incident")}
+                {inc.status_code ? <span className="muted" style={{ fontWeight: 400 }}> · HTTP {inc.status_code}</span> : null}
+              </span>
+              <span className="tl-time">{fmtTime(inc.started_at)}</span>
+            </div>
+            {inc.recovery_minutes != null && (
+              <div className="tl-desc">Recovered in {Math.round(inc.recovery_minutes)} min</div>
+            )}
+            {inc.ai_explanation && (
+              <div className="tl-desc" style={{ color: "var(--on-surface)" }}>{inc.ai_explanation}</div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function MonitorDetail() {
   const { id } = useParams();
+  const nav = useNavigate();
   const [m, setM] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,89 +127,65 @@ export default function MonitorDetail() {
   }
   useEffect(() => { load(); }, [id]);
 
-  if (loading) return <div className="center-screen"><span className="spinner" /></div>;
-  if (!m) return <div className="container"><p className="muted">Monitor not found.</p><Link to="/">← Back</Link></div>;
+  if (loading) return <Shell><div className="center-screen"><span className="spinner" /></div></Shell>;
+  if (!m) return <Shell><div className="content"><p className="muted">Monitor not found.</p><Link to="/">← Back</Link></div></Shell>;
 
+  const st = !m.enabled ? "paused" : m.status;
   const open = m.recent_incidents?.find((i: any) => !i.resolved_at);
 
   return (
-    <div className="container">
-      <Link to="/" className="muted">← My monitors</Link>
-
-      <div className="header-row" style={{ marginTop: 12 }}>
-        <div>
-          <div className="pill" style={{ gap: 10 }}>
-            <span className={`dot ${m.enabled ? m.status : "paused"}`} style={{ width: 16, height: 16 }} />
-            <h1 style={{ margin: 0 }}>{m.name}</h1>
-          </div>
-          <p className="muted" style={{ margin: "4px 0 0" }}>{m.url}</p>
+    <Shell>
+      <Topbar
+        title={m.name}
+        sub={m.url}
+        actions={
+          <Link className="btn btn-ghost btn-sm" to="/dashboard">← Monitors</Link>
+        }
+      />
+      <div className="content">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, marginBottom: 22 }}>
+          <span className={`status-pill ${st === "down" ? "down" : st === "paused" ? "purple" : ""}`}>
+            <span className={`pulse-dot ${st === "down" ? "down" : st === "paused" ? "purple" : ""}`} />
+            {st === "up" ? "Operational" : st === "down" ? "Down" : "Paused"}
+          </span>
+          <span className="badge">every {Math.round(m.interval / 60)}m</span>
         </div>
-        <span className="badge">every {m.interval}s</span>
-      </div>
 
-      <div className={`status-banner ${m.status === "down" ? "down" : "up"}`}>
-        <div style={{ fontSize: 18, fontWeight: 700 }}>
-          {m.status === "up" ? "✅ Operational" : m.enabled ? "🚨 Down" : "⏸ Paused"}
-        </div>
         {open && (
-          <div className="muted" style={{ marginTop: 6 }}>
-            Since {fmtTime(open.started_at)}
-            {open.status_code ? ` · HTTP ${open.status_code}` : ""}
-            {open.reason ? ` · ${open.reason}` : ""}
+          <div className="alert-demo" style={{ marginBottom: 22 }}>
+            <div className="top"><Icon name="alert" /> Outage in progress</div>
+            <div style={{ fontWeight: 600, marginTop: 6 }}>
+              Since {fmtTime(open.started_at)}{open.status_code ? ` · HTTP ${open.status_code}` : ""}
+              {open.reason ? ` · ${open.reason}` : ""}
+            </div>
+            {open.ai_explanation && <div className="meta" style={{ marginTop: 8, color: "var(--on-surface-variant)" }}>{open.ai_explanation}</div>}
           </div>
         )}
-        {open?.ai_explanation && (
-          <div className="ai-box">
-            <strong>🤖 AI Incident Analysis</strong>
-            {"\n"}{open.ai_explanation}
+
+        <div className="bento">
+          <Bento label="Uptime 24h" value={m.uptime_24h != null ? `${m.uptime_24h}%` : "—"} color="var(--green)" />
+          <Bento label="Avg Response" value={m.avg_response_time != null ? `${Math.ceil(m.avg_response_time)}ms` : "—"} />
+          <Bento label="Checks 24h" value={m.recent_checks?.length || 0} />
+          <Bento label="Incidents" value={m.recent_incidents?.length || 0} color={(m.recent_incidents?.length || 0) ? "var(--red)" : "var(--green)"} sub={open ? "1 active" : "none active"} />
+        </div>
+
+        <div className="cols-2">
+          <ResponseChart checks={m.recent_checks || []} />
+          <div className="info-card glass-2">
+            <div className="kpi-label" style={{ marginBottom: 8 }}>Service Details</div>
+            <div className="info-row"><span>Status</span><span className="cell-mono" style={{ color: st === "down" ? "var(--red)" : st === "paused" ? "var(--purple-soft)" : "var(--green)" }}>{st}</span></div>
+            <div className="info-row"><span>Interval</span><span className="cell-mono">{m.interval}s</span></div>
+            <div className="info-row"><span>Last checked</span><span className="cell-mono">{fmtTime(m.last_checked)}</span></div>
+            <div className="info-row"><span>Enabled</span><span className="cell-mono">{m.enabled ? "yes" : "no"}</span></div>
           </div>
-        )}
+        </div>
+
+        <div className="section-title">Response over time · last 24 hours</div>
+        <UptimeBar checks={m.recent_checks || []} />
+
+        <div className="section-title">Incident history</div>
+        <Timeline incidents={m.recent_incidents || []} />
       </div>
-
-      <div className="metrics" style={{ gap: 28 }}>
-        <div className="metric"><div className="v">{m.recent_checks?.length || 0}</div><div className="l">Checks (24h)</div></div>
-        <div className="metric"><div className="v">{m.interval}s</div><div className="l">Interval</div></div>
-        <div className="metric"><div className="v">{m.last_checked ? fmtTime(m.last_checked) : "—"}</div><div className="l">Last checked</div></div>
-      </div>
-
-      <div className="section-title">Last 24 hours</div>
-      <UptimeBar checks={m.recent_checks || []} />
-
-      <div className="section-title">Recent checks</div>
-      <table>
-        <thead><tr><th>Time</th><th>Status</th><th>Code</th><th>Latency</th></tr></thead>
-        <tbody>
-          {(m.recent_checks || []).slice(0, 20).map((c: any) => (
-            <tr key={c.id}>
-              <td>{fmtTime(c.checked_at)}</td>
-              <td style={{ color: c.status === "down" ? "var(--red)" : "var(--green)" }}>{c.status.toUpperCase()}</td>
-              <td>{c.status_code ?? "—"}</td>
-              <td>{c.response_time != null ? `${Math.ceil(c.response_time)}ms` : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {m.recent_incidents?.length > 0 && (
-        <>
-          <div className="section-title">Incidents</div>
-          <table>
-            <thead><tr><th>Started</th><th>Resolved</th><th>Downtime</th><th>AI note</th></tr></thead>
-            <tbody>
-              {m.recent_incidents.map((i: any) => (
-                <tr key={i.id}>
-                  <td>{fmtTime(i.started_at)}</td>
-                  <td>{i.resolved_at ? fmtTime(i.resolved_at) : "ongoing"}</td>
-                  <td>{i.recovery_minutes != null ? `${i.recovery_minutes}m` : "—"}</td>
-                  <td style={{ maxWidth: 280 }}>
-                    {i.ai_explanation ? i.ai_explanation.split("\n")[0] : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
-    </div>
+    </Shell>
   );
 }

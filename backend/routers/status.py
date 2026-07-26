@@ -34,11 +34,20 @@ async def public_status(owner_id: int, db: AsyncSession = Depends(get_db)):
                 Check.status == "up", Check.response_time.isnot(None),
             )
         )
+        spark_rows = (
+            await db.execute(
+                select(Check.status)
+                .where(Check.monitor_id == m.id)
+                .order_by(Check.checked_at.desc())
+                .limit(50)
+            )
+        ).scalars().all()
         total = total or 0
         uptime = round(up / total * 100, 2) if total else 100.0
         state = "paused" if not m.enabled else ("down" if m.status == "down" else "up")
         services.append(PublicService(
             name=m.name, url=m.url, status=state,
             uptime_24h=uptime, avg_response_time=round(avg, 1) if avg else None,
+            spark=list(reversed(spark_rows)),
         ))
     return services

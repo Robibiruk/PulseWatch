@@ -1,125 +1,159 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth";
 import * as api from "../api";
-import UptimeBar from "../components/UptimeBar";
+import { useAuth } from "../auth";
+import Icon from "../components/Icon";
+import { Shell, Topbar } from "../components/Layout";
+import NewMonitorWizard from "../components/NewMonitorWizard";
+
+function statusOf(m: any) {
+  if (!m.enabled) return "paused";
+  return m.status; // up | down
+}
+
+function Kpi({ icon, label, value, unit, sub, pct, spark, sparkOn }: any) {
+  return (
+    <div className="kpi-card glass-2">
+      <div className="ico"><Icon name={icon} size={56} /></div>
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value">{value}{unit && <span className="unit">{unit}</span>}</div>
+      {sub && <div className="kpi-sub">{sub}</div>}
+      {pct != null && (
+        <div className="kpi-bar"><i style={{ width: `${pct}%` }} /></div>
+      )}
+      {spark && (
+        <div className="kpi-spark">
+          {spark.map((s: string, i: number) => (
+            <i key={i} className={sparkOn?.includes(i) ? "on" : ""} style={{ height: s === "h" ? "100%" : "55%" }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Spark({ checks }: { checks: any[] }) {
+  return (
+    <div className="spark">
+      {checks.slice(0, 30).map((c, i) => {
+        const v = c.response_time != null ? Math.min(100, c.response_time / 5) : 4;
+        return <i key={i} style={{ height: `${v}%` }} className={c.status === "down" ? "hot" : ""} />;
+      })}
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const nav = useNavigate();
-  const [monitors, setMonitors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", url: "", interval: 60 });
+  const [monitors, setMonitors] = useState<any[] | null>(null);
+  const [summary, setSummary] = useState<any>(null);
+  const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState("");
 
   async function load() {
-    setLoading(true);
-    try { setMonitors(await api.listMonitors()); }
-    finally { setLoading(false); }
+    try {
+      const [m, s] = await Promise.all([api.listMonitors(), api.monitorSummary()]);
+      setMonitors(m);
+      setSummary(s);
+    } catch (e: any) {
+      setErr(e.message);
+    }
   }
   useEffect(() => { load(); }, []);
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault(); setErr("");
-    try {
-      await api.createMonitor(form);
-      setForm({ name: "", url: "", interval: 60 }); setShowAdd(false); await load();
-    } catch (e: any) { setErr(e.message); }
-  };
+  if (monitors === null) return <Shell><div className="center-screen"><span className="spinner" /></div></Shell>;
 
-  const remove = async (id: number) => {
-    if (!confirm("Delete this monitor?")) return;
-    await api.deleteMonitor(id); await load();
-  };
+  const fleetSpark = (monitors || []).map((m) => statusOf(m) === "up" ? "h" : "l").slice(0, 30);
+  const upPct = summary && summary.total ? Math.round((summary.up / summary.total) * 100) : 0;
 
   return (
-    <>
-      <div className="nav">
-        <div className="brand"><span className="logo">❤</span> PulseWatch</div>
-        <div className="btn-row">
-          <span className="badge">{user?.email}</span>
-          <button className="ghost" style={{ width: "auto", padding: "8px 14px" }} onClick={() => { logout(); nav("/login"); }}>
-            Sign out
+    <Shell>
+      <Topbar
+        title={`Welcome back${user?.full_name ? ", " + user.full_name.split(" ")[0] : ""}`}
+        sub={`${summary?.total ?? 0} monitors under watch`}
+        actions={
+          <button className="btn" onClick={() => setWizard(true)}>
+            <Icon name="plus" size={18} /> New Monitor
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="container">
-        <div className="header-row">
-          <div>
-            <h1 style={{ margin: 0 }}>My Monitors</h1>
-            <p className="muted" style={{ margin: "4px 0 0" }}>
-              Worker runs free on GitHub Actions · checks saved to Neon
-            </p>
+      <div className="content">
+        {err && <div className="error">{err}</div>}
+
+        <div className="kpi-grid">
+          <Kpi icon="globe" label="Total Monitors" value={summary?.total ?? 0} sub={`${summary?.paused ?? 0} paused`} pct={upPct} />
+          <Kpi icon="activity" label="Uptime (24h)" value={summary?.uptime_24h != null ? summary.uptime_24h : "—"} unit={summary?.uptime_24h != null ? "%" : ""}
+            sub="Across all services" pct={summary?.uptime_24h ?? 100} />
+          <Kpi icon="timer" label="Avg Response" value={summary?.avg_response != null ? summary.avg_response : "—"} unit={summary?.avg_response != null ? "ms" : ""}
+            sub="Mean round-trip" />
+          <Kpi icon="alert" label="Active Incidents" value={summary?.active_incidents ?? 0} sub={summary?.down ? `${summary.down} down` : "All healthy"}
+            pct={summary?.active_incidents ? 8 : 100} spark={fleetSpark} sparkOn={fleetSpark.map((_: any, i: number) => i).filter((i: number) => fleetSpark[i] === "h")} />
+        </div>
+
+        {monitors.length === 0 ? (
+          <div className="empty" style={{ marginTop: 28 }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}><Icon name="server" size={40} /></div>
+            <h3 style={{ margin: "0 0 8px" }}>No monitors yet</h3>
+            <p>Add your first endpoint to start watching it in real time.</p>
+            <button className="btn" style={{ marginTop: 14 }} onClick={() => setWizard(true)}>
+              <Icon name="plus" size={18} /> New Monitor
+            </button>
           </div>
-          <button style={{ width: "auto" }} onClick={() => setShowAdd(!showAdd)}>
-            + Add monitor
-          </button>
-        </div>
-
-        {showAdd && (
-          <form className="card" style={{ maxWidth: "100%", marginBottom: 18 }} onSubmit={add}>
-            <div className="split">
-              <input placeholder="Name (e.g. Portfolio)" value={form.name} required
-                onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="https://myapp.com" value={form.url} required
-                onChange={(e) => setForm({ ...form, url: e.target.value })} />
-              <select value={form.interval}
-                onChange={(e) => setForm({ ...form, interval: Number(e.target.value) })}
-                style={{ maxWidth: 140 }}>
-                <option value={60}>1 min</option>
-                <option value={300}>5 min</option>
-                <option value={600}>10 min</option>
-                <option value={1800}>30 min</option>
-              </select>
+        ) : (
+          <div className="fleet glass-2" style={{ marginTop: 28 }}>
+            <div className="fleet-head">
+              <h3 style={{ margin: 0, fontSize: 17 }}>Monitored services</h3>
+              <span className="badge">{monitors.length} total</span>
             </div>
-            {err && <div className="error">{err}</div>}
-            <div className="btn-row">
-              <button style={{ maxWidth: 160 }}>Save</button>
-              <button type="button" className="ghost" style={{ maxWidth: 160 }} onClick={() => setShowAdd(false)}>Cancel</button>
-            </div>
-          </form>
+            <table className="fleet-grid">
+              <thead>
+                <tr><th>Service</th><th>Status</th><th style={{ textAlign: "right" }}>Uptime 24h</th><th style={{ textAlign: "right" }}>Avg ms</th><th style={{ textAlign: "right" }}>Interval</th><th></th></tr>
+              </thead>
+              <tbody>
+                {monitors.map((m) => {
+                  const st = statusOf(m);
+                  return (
+                    <tr key={m.id} style={{ cursor: "pointer" }} onClick={() => nav(`/monitor/${m.id}`)}>
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <span className="svc-ico"><Icon name={m.url?.includes("api") ? "webhook" : "globe"} /></span>
+                          <div>
+                            <div className="svc-name">{m.name}</div>
+                            <div className="svc-url">{m.url}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`status-pill ${st === "down" ? "down" : st === "paused" ? "purple" : ""}`}>
+                          <span className={`pulse-dot ${st === "down" ? "down" : st === "paused" ? "purple" : ""}`} />
+                          {st === "up" ? "Operational" : st === "down" ? "Down" : "Paused"}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }} className="cell-mono">{m.uptime_24h != null ? `${m.uptime_24h}%` : "—"}</td>
+                      <td style={{ textAlign: "right" }} className="cell-mono">{m.avg_response_time != null ? `${Math.ceil(m.avg_response_time)}` : "—"}</td>
+                      <td style={{ textAlign: "right" }} className="cell-mono">{Math.round(m.interval / 60)}m</td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="row-action" onClick={(e) => { e.stopPropagation(); nav(`/monitor/${m.id}`); }}>
+                          <Icon name="chevron-right" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-
-        {loading ? <p className="muted"><span className="spinner" /> loading…</p> :
-          monitors.length === 0 ? (
-            <div className="empty">No monitors yet. Add your first website to start watching it.</div>
-          ) : (
-            <div className="grid">
-              {monitors.map((m) => (
-                <div key={m.id} className="monitor">
-                  <div className="top">
-                    <span className="pill">
-                      <span className={`dot ${m.enabled ? m.status : "paused"}`} />
-                      <span className="mname">{m.name}</span>
-                    </span>
-                    <span className="badge">{m.interval}s</span>
-                  </div>
-                  <div className="url">{m.url}</div>
-                  <div className="metrics">
-                    <div className="metric">
-                      <div className="v" style={{ color: m.status === "down" ? "var(--red)" : "var(--green)" }}>
-                        {m.status === "up" ? "UP" : m.enabled ? "DOWN" : "PAUSED"}
-                      </div>
-                      <div className="l">Status</div>
-                    </div>
-                    <div className="metric">
-                      <div className="v">{m.last_checked ? "" : "—"}</div>
-                      <div className="l">Last check</div>
-                    </div>
-                  </div>
-                  <UptimeBar checks={m.recent_checks || []} />
-                  <div className="btn-row" style={{ marginTop: 14 }}>
-                    <button className="ghost" style={{ padding: "8px" }}
-                      onClick={() => nav(`/monitor/${m.id}`)}>Details</button>
-                    <button className="danger" style={{ padding: "8px", maxWidth: 90 }} onClick={() => remove(m.id)}>Delete</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
       </div>
-    </>
+
+      {wizard && (
+        <NewMonitorWizard
+          onClose={() => setWizard(false)}
+          onCreated={() => { setWizard(false); load(); }}
+        />
+      )}
+    </Shell>
   );
 }

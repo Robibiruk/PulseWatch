@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
+import Icon from "../components/Icon";
 
 export default function Login() {
   const { login, register } = useAuth();
@@ -25,27 +26,56 @@ export default function Login() {
   };
 
   return (
-    <div className="center-screen">
-      <form className="card" onSubmit={submit}>
-        <div className="brand" style={{ marginBottom: 16 }}>
-          <span className="logo">❤</span> PulseWatch
+    <div className="auth-wrap">
+      <div className="auth-glow" />
+      <form className="auth-card glass" onSubmit={submit}>
+        <div className="auth-logo">
+          <span className="mark"><Icon name="heart-pulse" /></span>
+          <h1>PulseWatch</h1>
         </div>
-        <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
-        <p className="sub muted">Developer-first uptime monitoring. Free, forever.</p>
+        <h2 style={{ margin: "0 0 4px", fontSize: 26, textAlign: "center" }}>
+          {mode === "login" ? "Welcome back" : "Create your account"}
+        </h2>
+        <p className="muted" style={{ textAlign: "center", margin: "0 0 22px" }}>
+          Infrastructure monitoring at the speed of light.
+        </p>
+
+        <button type="button" className="github-btn" onClick={() => setErr("GitHub OAuth coming soon — use email for now.")}>
+          <Icon name="github" /> Continue with GitHub
+        </button>
+        <div className="divider">or email</div>
 
         {mode === "register" && (
-          <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+          <div style={{ marginBottom: 14 }}>
+            <label className="field">Full name</label>
+            <input placeholder="Dev Ops" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
         )}
-        <input type="email" placeholder="Email" value={email} required
-          onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} required minLength={6}
+        <label className="field">Work email</label>
+        <input type="email" placeholder="name@company.com" value={email} required
+          onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 14 }} />
+        <label className="field">Password</label>
+        <input type="password" placeholder="••••••••" value={password} required minLength={6}
           onChange={(e) => setPassword(e.target.value)} />
+
         {err && <div className="error">{err}</div>}
-        <button disabled={busy}>{busy ? "..." : mode === "login" ? "Sign in" : "Sign up"}</button>
-        <button type="button" className="ghost" onClick={() => setMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "Need an account? Register" : "Have an account? Sign in"}
+        <button className="btn" disabled={busy} style={{ width: "100%", marginTop: 14 }}>
+          {busy ? "…" : mode === "login" ? "Sign In" : "Sign Up"}
         </button>
+
+        <p className="muted" style={{ textAlign: "center", marginTop: 22, fontSize: 14 }}>
+          {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+          <button type="button" className="btn-ghost" style={{ background: "none", border: "none", padding: 0, color: "var(--primary)", cursor: "pointer", font: "inherit", fontWeight: 700 }}
+            onClick={() => setMode(mode === "login" ? "register" : "login")}>
+            {mode === "login" ? "Sign up" : "Log in"}
+          </button>
+        </p>
       </form>
+
+      <div style={{ position: "absolute", bottom: 28, display: "flex", gap: 14, alignItems: "center" }}>
+        <span className="status-pill"><span className="pulse-dot" /> All Systems Operational</span>
+        <span className="mono" style={{ color: "var(--on-surface-muted)", fontSize: 11 }}>v2.4.0-stable</span>
+      </div>
     </div>
   );
 }

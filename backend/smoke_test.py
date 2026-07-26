@@ -16,6 +16,7 @@ os.environ["FAILURE_THRESHOLD"] = "2"        # open incident after 2 failures fo
 os.environ["CONFIRMATION_DELAY"] = "1"
 os.environ["TELEGRAM_BOT_TOKEN"] = ""        # force stdout fallback
 os.environ["TELEGRAM_CHAT_ID"] = ""
+os.environ["NO_WORKER"] = "true"                      # don't auto-start the scheduler during the test
 
 from datetime import datetime, timedelta, timezone  # noqa: E402
 
@@ -57,14 +58,14 @@ async def main():
     async with AsyncSessionLocal() as db:
         m = await db.get(Monitor, mon["id"])
         # first failure: should NOT open incident yet
-        await process_monitor(db, m)
-        m = await db.get(Monitor, mon["id"])
+        await process_monitor(m.id)
+        await db.refresh(m)  # engine commits in its own session; refresh this one
         assert m.status == "up", f"expected still up after 1 failure, got {m.status}"
         assert m.consecutive_failures == 1
         print("after 1 failure: status=up (no false alarm) ✓")
         # second failure: threshold reached -> incident opens
-        await process_monitor(db, m)
-        m = await db.get(Monitor, mon["id"])
+        await process_monitor(m.id)
+        await db.refresh(m)
         assert m.status == "down", f"expected down after threshold, got {m.status}"
         open_inc = (await db.execute(
             select(Incident).where(Incident.monitor_id == mon["id"], Incident.resolved_at.is_(None))
@@ -86,8 +87,8 @@ async def main():
         await db.commit()
     async with AsyncSessionLocal() as db:
         m = await db.get(Monitor, mon["id"])
-        await process_monitor(db, m)
-        m = await db.get(Monitor, mon["id"])
+        await process_monitor(m.id)
+        await db.refresh(m)
         assert m.status == "up", f"expected recovery to up, got {m.status}"
         inc = (await db.execute(
             select(Incident).where(Incident.monitor_id == mon["id"], Incident.resolved_at.is_(None))

@@ -44,9 +44,17 @@ export const register = (body: { email: string; password: string; full_name: str
   });
 export const me = () => request<any>("/auth/me");
 
+// ── Telegram ──
+export const tgLink = () => request<any>("/auth/telegram/link");
+export const tgUnlink = () => request<any>("/auth/telegram/unlink", { method: "POST" });
+export const tgPause = () => request<any>("/auth/telegram/pause", { method: "POST" });
+export const tgResume = () => request<any>("/auth/telegram/resume", { method: "POST" });
+
 // ── Monitors ──
 export const listMonitors = () => request<any[]>("/monitors");
 export const getMonitor = (id: number) => request<any>(`/monitors/${id}`);
+export const monitorSummary = () => request<any>("/monitors/summary");
+export const listIncidents = () => request<any[]>("/monitors/incidents");
 export const createMonitor = (body: { name: string; url: string; interval: number }) =>
   request<any>("/monitors", { method: "POST", body: JSON.stringify(body) });
 export const updateMonitor = (id: number, body: any) =>

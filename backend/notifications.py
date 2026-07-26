@@ -1,7 +1,9 @@
 """Notifications: Telegram (primary) + Resend email (secondary).
 
-If no Telegram token/chat id is configured, alerts are printed to stdout
-(dev fallback) so the worker is runnable locally without credentials.
+Alerts are routed per-user when a chat id is supplied (the bot links each
+account to its own Telegram chat). If no per-user chat and no global
+telegram config is set, the alert is printed to stdout (dev fallback) so
+the worker is runnable locally without credentials.
 """
 import os
 
@@ -17,6 +19,21 @@ def _print_fallback(title: str, body: str) -> None:
     print("-" * 48)
     print(body)
     print("=" * 48 + "\n")
+
+
+async def _send_telegram(chat_id: str, text: str) -> None:
+    url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(url, json=payload)
+    except Exception as e:  # noqa: BLE001
+        print(f"[notify] Telegram send failed: {e}")
 
 
 def format_down_alert(name: str, url: str, result, incident) -> str:
@@ -46,25 +63,23 @@ def format_ai_note(explanation: str) -> str:
     return f"\n🤖 AI Incident Analysis\n{explanation}\n"
 
 
-async def send_alert(text: str) -> None:
-    if not settings.telegram_bot_token or not settings.telegram_chat_id:
-        _print_fallback("", text)
+async def send_alert(text: str, chat_id: str | None = None) -> None:
+    """Send an alert.
+
+    chat_id  - per-user Telegram chat (preferred). When provided, route there.
+    Falls back to the global TELEGRAM_CHAT_ID, then to stdout.
+    """
+    target = chat_id or settings.telegram_chat_id
+    if settings.telegram_bot_token and target:
+        await _send_telegram(target, text)
         if settings.resend_api_key and settings.alert_to_email:
             await _send_email("PulseWatch Alert", text)
         return
 
-    url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
-    payload = {
-        "chat_id": settings.telegram_chat_id,
-        "text": text,
-        "parse_mode": "Markdown",
-        "disable_web_page_preview": True,
-    }
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(url, json=payload)
-    except Exception as e:  # noqa: BLE001
-        print(f"[notify] Telegram send failed: {e}")
+    # No chat target -> dev fallback
+    _print_fallback("", text)
+    if settings.resend_api_key and settings.alert_to_email:
+        await _send_email("PulseWatch Alert", text)
 
 
 async def _send_email(subject: str, body: str) -> None:
