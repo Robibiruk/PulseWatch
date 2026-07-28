@@ -64,6 +64,22 @@ async def connect(payload: ConnectPayload, db: AsyncSession = Depends(get_db)):
     user = res.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="Invalid or expired link token")
+    # Enforce 1:1 — a Telegram chat may belong to exactly one PulseWatch account.
+    # Block linking a chat already bound to a *different* account (prevents the
+    # "fluctuation" where two accounts share a chat_id and bot commands/alerts
+    # flip between them). Re-linking your own chat is idempotent (self excluded).
+    clash = await db.execute(
+        select(User).where(
+            User.telegram_chat_id == payload.chat_id,
+            User.id != user.id,
+        )
+    )
+    if clash.scalars().first():
+        raise HTTPException(
+            status_code=409,
+            detail="This Telegram chat is already linked to another PulseWatch account. "
+            "Unlink it from that account first, or link from a different Telegram chat.",
+        )
     user.telegram_chat_id = payload.chat_id
     user.telegram_link_token = None
     await db.commit()

@@ -80,8 +80,11 @@ WELCOME = (
 
 
 async def _user_by_chat(db, chat_id: str) -> User | None:
-    return (await db.execute(select(User).where(User.telegram_chat_id == str(chat_id)))
-            ).scalars().first()
+    # Stable ordering (lowest id) so lookup is deterministic even if a stray
+    # duplicate chat_id ever exists. The connect guard keeps ownership 1:1.
+    return (await db.execute(
+        select(User).where(User.telegram_chat_id == str(chat_id)).order_by(User.id)
+    )).scalars().first()
 
 
 async def _welcome(chat_id: str, auth_token: str | None) -> str:
