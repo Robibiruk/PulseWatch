@@ -26,6 +26,15 @@ class User(Base):
     telegram_chat_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     telegram_link_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     alerts_paused: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_checkin_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Alert channels (comma-separated enabled channels: telegram,email,discord,slack,webhook)
+    enabled_channels: Mapped[str] = mapped_column(String(255), default="telegram,email")
+    # Per-user channel targets (override global webhooks / email)
+    alert_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    discord_webhook: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    slack_webhook: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    webhook_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     monitors: Mapped[list["Monitor"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
@@ -40,13 +49,42 @@ class Monitor(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     name: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(2048))
+    monitor_type: Mapped[str] = mapped_column(String(16), default="http")  # http | heartbeat
+    heartbeat_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     interval: Mapped[int] = mapped_column(Integer, default=60)  # seconds
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # monitoring parameters (free tier)
+    tags: Mapped[str] = mapped_column(String(255), default="")  # comma-separated
+    request_timeout: Mapped[int] = mapped_column(Integer, default=10)  # seconds
+    ip_version: Mapped[str] = mapped_column(String(8), default="auto")  # auto | ipv4 | ipv6
+    follow_redirects: Mapped[bool] = mapped_column(Boolean, default=True)
+    check_ssl: Mapped[bool] = mapped_column(Boolean, default=True)  # check SSL errors
+    ssl_expiry_reminders: Mapped[bool] = mapped_column(Boolean, default=True)
+    domain_expiry_reminders: Mapped[bool] = mapped_column(Boolean, default=False)
+    # paid-tier options (stored but locked behind plan — Upgrade badges in UI)
+    slow_response_alert: Mapped[bool] = mapped_column(Boolean, default=False)
+    slow_response_threshold_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    up_status_codes: Mapped[str] = mapped_column(String(32), default="2xx,3xx")  # which codes count as up
+    http_method: Mapped[str] = mapped_column(String(8), default="GET")  # GET | HEAD | POST
+    auth_type: Mapped[str] = mapped_column(String(16), default="none")  # none | basic | bearer
+    auth_user: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    auth_pass: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    auth_bearer: Mapped[str | None] = mapped_column(String(512), nullable=True)
     # incident state machine
     status: Mapped[str] = mapped_column(String(16), default="up")  # up | down
     consecutive_failures: Mapped[int] = mapped_column(Integer, default=0)
     next_check: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    # Distributed-worker locking: a worker "claims" a monitor by writing a
+    # unique token + a short claim window. Other instances skip claimed rows,
+    # so scaling the worker horizontally (multiple Render instances) never
+    # produces duplicate checks or duplicate alerts.
+    claim_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    claimed_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_heartbeat: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # SSL certificate expiry (for https monitors)
+    ssl_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ssl_warned: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     owner: Mapped["User"] = relationship(back_populates="monitors")
@@ -88,3 +126,13 @@ class Incident(Base):
     monitor: Mapped["Monitor"] = relationship(
         back_populates="incidents", foreign_keys="[Incident.monitor_id]"
     )
+
+
+class StatusPage(Base):
+    __tablename__ = "status_pages"
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    title: Mapped[str] = mapped_column(String(255), default="PulseWatch Status")
+    description: Mapped[str] = mapped_column(Text, default="")
+    theme: Mapped[str] = mapped_column(String(16), default="neon")  # neon | light | minimal
+    show_response_time: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

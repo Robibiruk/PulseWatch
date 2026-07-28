@@ -12,6 +12,7 @@ import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,11 +36,23 @@ async def link(current: User = Depends(get_current_user), db: AsyncSession = Dep
     # (re)generate a single-use link token
     current.telegram_link_token = secrets.token_urlsafe(24)
     await db.commit()
-    bot = settings.telegram_bot_token.split(":")[0]  # bot id prefix before ':'
+    # Resolve the bot USERNAME (not the numeric id) so the deep link is valid.
+    # t.me/<numeric_id> is invalid and falls through to telegram.org; we need
+    # the @username from getMe.
+    try:
+        async with httpx.AsyncClient(timeout=30) as c:
+            me = (await c.get(f"https://api.telegram.org/bot{settings.telegram_bot_token}/getMe")).json()
+        bot_username = me.get("result", {}).get("username") if me.get("ok") else None
+    except Exception:  # noqa: BLE001
+        bot_username = None
+    if not bot_username:
+        raise HTTPException(status_code=502, detail="Could not resolve bot username from Telegram")
+    token = current.telegram_link_token
     return {
         "linked": bool(current.telegram_chat_id),
-        "link": f"https://t.me/{bot}?start={current.telegram_link_token}",
-        "token": current.telegram_link_token,
+        "bot_username": bot_username,
+        "link": f"https://t.me/{bot_username}?start={token}",
+        "token": token,
     }
 
 
@@ -66,10 +79,53 @@ async def unlink(current: User = Depends(get_current_user), db: AsyncSession = D
     return {"ok": True}
 
 
+class ChannelsPayload(BaseModel):
+    enabled_channels: str | None = None  # comma list: telegram,email,discord,slack,webhook
+    alert_email: str | None = None
+    discord_webhook: str | None = None
+    slack_webhook: str | None = None
+    webhook_url: str | None = None
+
+
+@router.get("/channels")
+async def get_channels(current: User = Depends(get_current_user)):
+    return {
+        "enabled_channels": current.enabled_channels,
+        "alert_email": current.alert_email,
+        "discord_webhook": bool(current.discord_webhook),
+        "slack_webhook": bool(current.slack_webhook),
+        "webhook_url": bool(current.webhook_url),
+    }
+
+
+@router.post("/channels")
+async def set_channels(payload: ChannelsPayload, current: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if payload.enabled_channels is not None:
+        allowed = {"telegram", "email", "discord", "slack", "webhook"}
+        chosen = [c.strip().lower() for c in payload.enabled_channels.split(",") if c.strip()]
+        invalid = set(chosen) - allowed
+        if invalid:
+            raise HTTPException(status_code=400, detail=f"Invalid channels: {', '.join(invalid)}")
+        current.enabled_channels = ",".join(chosen)
+    for field in ("alert_email", "discord_webhook", "slack_webhook", "webhook_url"):
+        val = getattr(payload, field)
+        if val is not None:
+            setattr(current, field, val or None)
+    await db.commit()
+    return {"ok": True, "enabled_channels": current.enabled_channels}
+
+
 @router.post("/pause")
 async def pause(current: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     current.alerts_paused = True
     await db.commit()
+    from notifications import send_control_message
+    await send_control_message(
+        "⏸ Monitoring Paused\n\nAll monitoring alerts have been paused. "
+        "You won't receive downtime or recovery notifications until resumed.\n\n"
+        "Use /resume (or Settings) to enable alerts again.",
+        current,
+    )
     return {"ok": True, "alerts_paused": True}
 
 
@@ -77,4 +133,10 @@ async def pause(current: User = Depends(get_current_user), db: AsyncSession = De
 async def resume(current: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     current.alerts_paused = False
     await db.commit()
+    from notifications import send_control_message
+    await send_control_message(
+        "▶️ Monitoring Resumed\n\nYour monitoring alerts are active again. "
+        "PulseWatch will notify you about downtimes, recoveries, and heartbeat misses.",
+        current,
+    )
     return {"ok": True, "alerts_paused": False}

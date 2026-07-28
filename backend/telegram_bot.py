@@ -9,6 +9,7 @@ Commands send the user-facing copy defined below; live data (status,
 monitors, incidents) is pulled from the DB by chat_id.
 """
 from asyncio import TaskGroup, create_task, sleep
+import asyncio
 from contextlib import asynccontextmanager
 
 import httpx
@@ -66,6 +67,18 @@ ABOUT = (
 )
 
 
+WELCOME = (
+    "👋 Welcome to PulseWatch!\n\n"
+    "I'll notify you whenever your monitored websites, APIs, or services change status.\n\n"
+    "You'll receive:\n"
+    "🟢 Recovery notifications\n"
+    "🔴 Downtime alerts\n"
+    "⚡ Performance updates\n"
+    "🔒 SSL certificate reminders\n\n"
+    "Configure your monitors from the PulseWatch dashboard."
+)
+
+
 async def _user_by_chat(db, chat_id: str) -> User | None:
     return (await db.execute(select(User).where(User.telegram_chat_id == str(chat_id)))
             ).scalars().first()
@@ -90,15 +103,7 @@ async def _welcome(chat_id: str, auth_token: str | None) -> str:
         except Exception as e:  # noqa: BLE001
             return f"[bot] connect failed: {e}"
     return (
-        "👋 Welcome to PulseWatch!\n\n"
-        "I'll notify you whenever your monitored websites, APIs, or services "
-        "change status.\n\n"
-        "You'll receive:\n"
-        "🟢 Recovery notifications\n"
-        "🔴 Downtime alerts\n"
-        "⚡ Performance updates\n"
-        "🔒 SSL certificate reminders\n\n"
-        "Configure your monitors from the PulseWatch dashboard."
+        WELCOME
     )
 
 
@@ -112,8 +117,9 @@ async def _status_text(chat_id: str) -> str:
         )).scalars().all()
     if not monitors:
         return ("📊 Service Status\n\n"
-                "You have no monitors yet.\n\n"
-                "Add your first website or API from the PulseWatch dashboard.")
+                "Checking your monitored services...\n\n"
+                "🟢 All systems are currently operational.\n\n"
+                "Use /monitors to view your active monitors.")
     up = sum(1 for m in monitors if m.status == "up")
     down = sum(1 for m in monitors if m.status == "down")
     lines = ["📊 Service Status\n"]
@@ -177,6 +183,18 @@ async def _pause(chat_id: str) -> str:
             return _not_linked()
         user.alerts_paused = True
         await db.commit()
+        # Email parity
+        try:
+            from notifications import send_control_message
+            if getattr(user, "enabled_channels", "").count("email"):
+                await send_control_message(
+                    "⏸ Monitoring Paused\n\nAll monitoring alerts have been paused. "
+                    "You won't receive downtime or recovery notifications until resumed.\n\n"
+                    "Use /resume to enable alerts again.",
+                    user,
+                )
+        except Exception:  # noqa: BLE001
+            pass
     return ("⏸ Monitoring Paused\n\n"
             "All monitoring alerts have been paused.\n\n"
             "You will not receive downtime or recovery notifications until "
@@ -191,6 +209,17 @@ async def _resume(chat_id: str) -> str:
             return _not_linked()
         user.alerts_paused = False
         await db.commit()
+        # Email parity
+        try:
+            from notifications import send_control_message
+            if getattr(user, "enabled_channels", "").count("email"):
+                await send_control_message(
+                    "▶️ Monitoring Resumed\n\nYour monitoring alerts are active again. "
+                    "PulseWatch will notify you about downtimes, recoveries, and heartbeat misses.",
+                    user,
+                )
+        except Exception:  # noqa: BLE001
+            pass
     return ("▶️ Monitoring Resumed\n\n"
             "Your monitoring alerts are active again.\n\n"
             "PulseWatch will notify you about:\n"
@@ -204,9 +233,23 @@ def _not_linked() -> str:
             "Open the PulseWatch dashboard -> Settings -> Connect Telegram to link.")
 
 
+async def _notifications_text(chat_id: str) -> str:
+    async with AsyncSessionLocal() as db:
+        user = await _user_by_chat(db, chat_id)
+    if not user:
+        return _not_linked()
+    chans = [c.strip() for c in (user.enabled_channels or "").split(",") if c.strip()]
+    icons = {"telegram": "📨", "email": "📧", "discord": "💬", "slack": "💡", "webhook": "🔗"}
+    lines = [NOTIFICATIONS, "", "Active channels:"]
+    for c in ("telegram", "email", "discord", "slack", "webhook"):
+        mark = "✅" if c in chans else "⬜"
+        lines.append(f"{mark} {icons.get(c, '•')} {c}")
+    return "\n".join(lines)
+
+
 COMMAND_HANDLERS = {
     "/help": lambda _: HELP,
-    "/notifications": lambda _: NOTIFICATIONS,
+    "/notifications": _notifications_text,
     "/settings": lambda _: SETTINGS,
     "/about": lambda _: ABOUT,
 }
@@ -238,13 +281,37 @@ async def _handle_update(update: dict) -> tuple[str, str | None]:
     if cmd == "/resume":
         return await _resume(str(chat_id)), None
     if cmd in COMMAND_HANDLERS:
-        return COMMAND_HANDLERS[cmd](str(chat_id)), None
+        result = COMMAND_HANDLERS[cmd](str(chat_id))
+        if asyncio.iscoroutine(result):
+            result = await result
+        return result, None
     return ("🤖 Unknown command.\n\n" + HELP), None
 
 
 async def _poll() -> None:
     token = settings.telegram_bot_token
+    if not token:
+        print("[telegram] no TELEGRAM_BOT_TOKEN — poller exiting")
+        return
     url = f"https://api.telegram.org/bot{token}"
+    # Validate the token before entering the loop so a bad token fails loudly.
+    try:
+        async with httpx.AsyncClient(timeout=30) as probe:
+            r = await probe.get(f"{url}/getMe")
+            me = r.json()
+            if not me.get("ok"):
+                print(f"[telegram] FATAL invalid bot token: {me.get('description')}")
+                return
+            print(f"[telegram] bot authorized as @{me['result']['username']}")
+            # CRITICAL: a set webhook makes getUpdates return empty forever.
+            # Always clear it so long-polling actually receives updates.
+            dw = await probe.get(f"{url}/deleteWebhook", params={"drop_pending_updates": True})
+            if dw.json().get("ok"):
+                print("[telegram] cleared any existing webhook (switching to polling)")
+    except Exception as e:  # noqa: BLE001
+        print(f"[telegram] FATAL cannot reach Telegram: {e}")
+        return
+
     offset = 0
     print("[telegram] bot polling started")
     async with httpx.AsyncClient(timeout=30) as client:
@@ -252,20 +319,37 @@ async def _poll() -> None:
             try:
                 r = await client.get(f"{url}/getUpdates", params={"offset": offset, "timeout": 25})
                 data = r.json()
+                if not data.get("ok"):
+                    print(f"[telegram] getUpdates error: {data.get('description')}")
+                    await sleep(5)
+                    continue
                 for update in data.get("result", []):
                     offset = update["update_id"] + 1
-                    chat_id = (update.get("message") or {}).get("chat", {}).get("id")
-                    if chat_id:
-                        text, _ = await _handle_update(update)
-                        if text:
-                            cid = chat_id
-                            await client.post(f"{url}/sendMessage", json={
-                                "chat_id": cid, "text": text,
-                                "parse_mode": "Markdown", "disable_web_page_preview": True,
-                            })
+                    msg = update.get("message") or update.get("edited_message")
+                    chat_id = (msg or {}).get("chat", {}).get("id")
+                    if not chat_id:
+                        continue
+                    incoming = (msg or {}).get("text", "")
+                    if incoming.startswith("/"):
+                        print(f"[telegram] <- {incoming.split()[0]} from chat {chat_id}")
+                    text, _ = await _handle_update(update)
+                    if text:
+                        resp = await client.post(f"{url}/sendMessage", json={
+                            "chat_id": chat_id, "text": text,
+                            "disable_web_page_preview": True,
+                        })
+                        j = resp.json()
+                        if not j.get("ok"):
+                            print(f"[telegram] sendMessage failed: {j.get('description')}")
             except Exception as e:  # noqa: BLE001
                 print(f"[telegram] poll error: {e}")
                 await sleep(5)
+
+
+if __name__ == "__main__":
+    # Standalone dev runner: `python telegram_bot.py`
+    import asyncio
+    asyncio.run(_poll())
 
 
 @asynccontextmanager

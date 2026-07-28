@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     no_worker: bool = False
     failure_threshold: int = 3
     confirmation_delay: int = 10
+    ssl_warn_days: int = 14
+    checkin_interval_minutes: int = 1440  # periodic "how are your services" digest
 
     # Telegram
     telegram_bot_token: str = ""
@@ -32,6 +34,11 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     alert_from_email: str = "alerts@yourdomain.com"
     alert_to_email: str = ""
+
+    # Other alert channels (global fallback; per-user values take precedence)
+    discord_webhook_url: str = ""
+    slack_webhook_url: str = ""
+    generic_webhook_url: str = ""
 
     # OpenRouter (AI explanations)
     openrouter_api_key: str = ""
