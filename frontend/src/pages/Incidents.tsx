@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as api from "../api";
 import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
+import Loader from "../components/Loader";
 
 function fmt(t?: string) {
   if (!t) return "—";
@@ -57,7 +58,7 @@ export default function Incidents() {
       />
       <div className="content">
         {inc === null ? (
-          <div className="center-screen"><span className="spinner" /></div>
+          <div className="center-screen"><Loader /></div>
         ) : list.length === 0 ? (
           <div className="empty">
             <div style={{ color: "var(--green)", display: "flex", justifyContent: "center", marginBottom: 10 }}>

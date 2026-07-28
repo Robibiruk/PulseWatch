@@ -7,16 +7,17 @@ import MonitorDetail from "./pages/MonitorDetail";
 import Incidents from "./pages/Incidents";
 import Settings from "./pages/Settings";
 import PublicStatus from "./pages/PublicStatus";
+import Loader from "./components/Loader";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="center-screen"><span className="spinner" /></div>;
+  if (loading) return <div className="center-screen"><Loader /></div>;
   return user ? children : <Navigate to="/login" replace />;
 }
 
 function Root() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="center-screen"><span className="spinner" /></div>;
+  if (loading) return <div className="center-screen"><Loader /></div>;
   // Logged-in users land on their dashboard; logged-out see the marketing page.
   return user ? <Navigate to="/dashboard" replace /> : <Landing />;
 }

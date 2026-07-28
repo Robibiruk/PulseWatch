@@ -6,6 +6,7 @@ import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
 import NewMonitorWizard from "../components/NewMonitorWizard";
 import MonitorEditor from "../components/MonitorEditor";
+import Loader from "../components/Loader";
 
 function statusOf(m: any) {
   if (!m.enabled) return "paused";
@@ -77,7 +78,7 @@ export default function Dashboard() {
     }
   }
 
-  if (monitors === null) return <Shell><div className="center-screen"><span className="spinner" /></div></Shell>;
+  if (monitors === null) return <Shell><div className="center-screen"><Loader /></div></Shell>;
 
   const fleetSpark = (monitors || []).map((m) => statusOf(m) === "up" ? "h" : "l").slice(0, 30);
   const upPct = summary && summary.total ? Math.round((summary.up / summary.total) * 100) : 0;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as api from "../api";
 import Icon from "../components/Icon";
+import Loader from "../components/Loader";
 
 export default function PublicStatus() {
   const { ownerId, slug } = useParams();
@@ -28,7 +29,7 @@ export default function PublicStatus() {
   );
   if (!data) return (
     <div className="status-page" data-theme="neon">
-      <div className="ps-inner"><span className="spinner" /></div>
+      <div className="ps-inner"><Loader /></div>
     </div>
   );
 

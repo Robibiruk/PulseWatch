@@ -4,6 +4,7 @@ import * as api from "../api";
 import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
 import MonitorEditor from "../components/MonitorEditor";
+import Loader from "../components/Loader";
 
 function fmtTime(t?: string) {
   if (!t) return "—";
@@ -129,7 +130,7 @@ export default function MonitorDetail() {
   }
   useEffect(() => { load(); }, [id]);
 
-  if (loading) return <Shell><div className="center-screen"><span className="spinner" /></div></Shell>;
+  if (loading) return <Shell><div className="center-screen"><Loader /></div></Shell>;
   if (!m) return <Shell><div className="content"><p className="muted">Monitor not found.</p><Link to="/">← Back</Link></div></Shell>;
 
   const st = !m.enabled ? "paused" : m.status;
