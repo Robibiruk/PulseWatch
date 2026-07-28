@@ -81,12 +81,27 @@ export default function Dashboard() {
 
   const fleetSpark = (monitors || []).map((m) => statusOf(m) === "up" ? "h" : "l").slice(0, 30);
   const upPct = summary && summary.total ? Math.round((summary.up / summary.total) * 100) : 0;
+  const lastTick = summary?.last_check ? new Date(summary.last_check).toLocaleTimeString() : null;
+
+  const [filter, setFilter] = useState<"all" | "up" | "down" | "paused" | "ssl">("all");
+  const now = Date.now();
+  const visible = (monitors || []).filter((m) => {
+    if (filter === "all") return true;
+    if (filter === "up") return m.enabled && m.status === "up";
+    if (filter === "down") return m.status === "down";
+    if (filter === "paused") return !m.enabled;
+    if (filter === "ssl") {
+      // SSL expiring within 14 days (best-effort; falls back to false without data)
+      return !!m.ssl_expires_at && (new Date(m.ssl_expires_at).getTime() - now) < 14 * 864e5;
+    }
+    return true;
+  });
 
   return (
     <Shell>
       <Topbar
         title={`Welcome back${user?.full_name ? ", " + user.full_name.split(" ")[0] : ""}`}
-        sub={`${summary?.total ?? 0} monitors under watch`}
+        sub={`${summary?.total ?? 0} monitors under watch${lastTick ? ` · Last worker tick ${lastTick}` : ""}`}
         actions={
           <button className="btn" onClick={() => setWizard(true)}>
             <Icon name="plus" size={18} /> New Monitor
@@ -120,14 +135,21 @@ export default function Dashboard() {
           <div className="fleet glass-2" style={{ marginTop: 28 }}>
             <div className="fleet-head">
               <h3 style={{ margin: 0, fontSize: 17 }}>Monitored services</h3>
-              <span className="badge">{monitors.length} total</span>
+              <span className="badge">{visible.length} shown</span>
+            </div>
+            <div className="seg" style={{ margin: "10px 0" }}>
+              {(["all", "up", "down", "paused", "ssl"] as const).map((f) => (
+                <button key={f} className={filter === f ? "active" : ""} onClick={() => setFilter(f)} style={{ textTransform: "capitalize", padding: "4px 12px", fontSize: 12 }}>
+                  {f === "ssl" ? "SSL Expiring" : f}
+                </button>
+              ))}
             </div>
             <table className="fleet-grid">
               <thead>
                 <tr><th>Service</th><th>Status</th><th style={{ textAlign: "right" }}>Uptime 24h</th><th style={{ textAlign: "right" }}>Avg ms</th><th style={{ textAlign: "right" }}>Interval</th><th></th></tr>
               </thead>
               <tbody>
-                {monitors.map((m) => {
+                {visible.map((m) => {
                   const st = statusOf(m);
                   return (
                     <tr key={m.id} style={{ cursor: "pointer" }} onClick={() => nav(`/monitor/${m.id}`)}>

@@ -27,6 +27,7 @@ export default function App() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/status/:ownerId" element={<PublicStatus />} />
+      <Route path="/status/slug/:slug" element={<PublicStatus />} />
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/monitor/:id" element={<RequireAuth><MonitorDetail /></RequireAuth>} />
       <Route path="/incidents" element={<RequireAuth><Incidents /></RequireAuth>} />

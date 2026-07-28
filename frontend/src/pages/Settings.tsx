@@ -75,10 +75,22 @@ export default function Settings() {
   const [fbMsg, setFbMsg] = useState("");
   const [fbDone, setFbDone] = useState(false);
 
-  const pubUrl = `${window.location.origin}/status/${user?.id}`;
+  const pubUrl = user?.status_slug
+    ? `${window.location.origin}/status/slug/${user.status_slug}`
+    : `${window.location.origin}/status/${user?.id}`;
   const copy = async () => {
     try { await navigator.clipboard.writeText(pubUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }
     catch { /* clipboard blocked */ }
+  };
+  const share = async () => {
+    try {
+      if (navigator.share) { await navigator.share({ title: "PulseWatch Status", url: pubUrl }); }
+      else { await copy(); }
+    } catch { /* user cancelled */ }
+  };
+  const regen = async () => {
+    try { const r = await api.regenerateStatusSlug(); setCopied(false); alert("Status page URL regenerated:\n" + window.location.origin + r.url); loadPlatform(); }
+    catch (e: any) { alert(e.message || "Failed"); }
   };
 
   const connect = async () => {
@@ -300,7 +312,12 @@ export default function Settings() {
             {spSaved ? "Saved ✓" : "Save page"}
           </button>
           <Row icon="link" title="Public page" desc="Preview your public monitor board" style={{ marginTop: 12 }}>
-            <a className="btn btn-ghost btn-sm" href={pubUrl} target="_blank" rel="noreferrer">Open ↗</a>
+            <div style={{ display: "flex", gap: 8 }}>
+              <a className="btn btn-ghost btn-sm" href={pubUrl} target="_blank" rel="noreferrer">Open ↗</a>
+              <button className="btn btn-ghost btn-sm" onClick={copy}>{copied ? "Copied ✓" : "Copy link"}</button>
+              <button className="btn btn-ghost btn-sm" onClick={share}>Share</button>
+              <button className="btn btn-ghost btn-sm" onClick={regen}>Regenerate</button>
+            </div>
           </Row>
         </div>
 

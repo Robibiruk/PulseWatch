@@ -161,6 +161,26 @@ async def list_sessions(current: User = Depends(get_current_user)):
     }
 
 
+@router.post("/status-slug")
+async def regenerate_status_slug(
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Rotate the public status-page slug. Returns the new public URL path."""
+    import string, random
+    alphabet = string.ascii_lowercase + string.digits
+    while True:
+        candidate = "pw-" + "".join(random.choices(alphabet, k=10))
+        exists = (await db.execute(
+            select(User).where(User.status_slug == candidate)
+        )).scalar_one_or_none()
+        if not exists:
+            break
+    current.status_slug = candidate
+    await db.commit()
+    return {"slug": candidate, "url": f"/status/slug/{candidate}"}
+
+
 # ── Account ────────────────────────────────────────────────────────────────
 class PasswordChange(BaseModel):
     current_password: str

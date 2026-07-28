@@ -121,7 +121,41 @@ export default function Landing() {
       </div>
 
       <footer className="land-footer">
-        PulseWatch · Free uptime monitoring for developers · Built on GitHub Actions + Neon
+        <div className="lf-cols">
+          <div className="lf-brand">
+            <div className="auth-logo" style={{ margin: 0 }}>
+              <img src="/favicon/pulsewatch.png" alt="PulseWatch" className="auth-logo-img" style={{ height: 22 }} />
+              <span className="auth-logo-word" style={{ color: "var(--on-surface)" }}>PulseWatch</span>
+            </div>
+            <p className="muted" style={{ marginTop: 10, maxWidth: 260, fontSize: 13 }}>
+              Developer-first uptime monitoring for websites, APIs, SSL certificates, and heartbeat jobs. Free, forever.
+            </p>
+          </div>
+          <div className="lf-col">
+            <h4>Product</h4>
+            <a href="/login">Features</a>
+            <a href="/login">Pricing</a>
+            <a href="/login">Status Pages</a>
+            <a href="/login">Roadmap</a>
+          </div>
+          <div className="lf-col">
+            <h4>Developers</h4>
+            <a href="/docs" target="_blank" rel="noreferrer">Documentation</a>
+            <a href="/docs/api" target="_blank" rel="noreferrer">API</a>
+            <a href="https://github.com/Robibiruk" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+          <div className="lf-col">
+            <h4>Company</h4>
+            <a href="/login">About</a>
+            <a href="/login">Privacy</a>
+            <a href="/login">Terms</a>
+            <a href="mailto:robekmedia@gmail.com">Contact</a>
+          </div>
+        </div>
+        <div className="lf-bottom">
+          <span>© {new Date().getFullYear()} PulseWatch · Built by Robel Biruk</span>
+          <span>v2.4.0</span>
+        </div>
       </footer>
     </div>
   );

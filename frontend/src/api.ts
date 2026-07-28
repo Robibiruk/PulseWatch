@@ -90,6 +90,8 @@ export const submitSupport = (body: { subject?: string; message: string; email?:
   request<any>("/api/platform/support", { method: "POST", body: JSON.stringify(body) });
 export const submitFeedback = (body: { rating: number; message?: string }) =>
   request<any>("/api/platform/feedback", { method: "POST", body: JSON.stringify(body) });
+export const regenerateStatusSlug = () =>
+  request<any>("/api/platform/status-slug", { method: "POST" });
 
 // ── Monitors ──
 export const listMonitors = () => request<any[]>("/monitors");
@@ -109,5 +111,6 @@ export const deleteMonitor = (id: number) => request<void>(`/monitors/${id}`, { 
 
 // ── Public status ──
 export const publicStatus = (ownerId: number) => request<{ config: any; services: any[] }>(`/status/${ownerId}`);
+export const publicStatusBySlug = (slug: string) => request<{ config: any; services: any[] }>(`/status/slug/${slug}`);
 
 export { ApiError };

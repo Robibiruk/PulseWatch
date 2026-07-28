@@ -30,6 +30,8 @@ class User(Base):
 
     # Alert channels (comma-separated enabled channels: telegram,email,discord,slack,webhook)
     enabled_channels: Mapped[str] = mapped_column(String(255), default="telegram,email")
+    # Public status page slug (regenerable, used in /status/:slug)
+    status_slug: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     # Per-user channel targets (override global webhooks / email)
     alert_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     discord_webhook: Mapped[str | None] = mapped_column(String(512), nullable=True)

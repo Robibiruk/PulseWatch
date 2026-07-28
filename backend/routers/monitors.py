@@ -108,6 +108,9 @@ async def fleet_summary(
         active_incidents=active_incidents,
         avg_response=round(resp_sum / resp_n, 1) if resp_n else None,
         uptime_24h=round(up_checks / total_checks * 100, 2) if total_checks else None,
+        last_check=max(
+            (m.last_checked for m in monitors if m.last_checked), default=None
+        ).isoformat() if any(m.last_checked for m in monitors) else None,
     )
 
 

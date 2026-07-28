@@ -159,6 +159,7 @@ class FleetSummary(BaseModel):
     active_incidents: int
     avg_response: float | None
     uptime_24h: float | None
+    last_check: str | None = None
 
 
 # ── Public status page ──

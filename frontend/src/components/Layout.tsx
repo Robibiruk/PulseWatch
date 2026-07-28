@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useAuth } from "../auth";
 import Icon from "./Icon";
 
@@ -15,6 +15,15 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
   const { user, logout } = useAuth();
   const nav = useNavigate();
   const initial = (user?.full_name || user?.email || "U").toString().charAt(0).toUpperCase();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
 
   return (
     <>
@@ -35,14 +44,31 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
               <Icon name={n.icon} /> {n.label}
             </NavLink>
           ))}
-          <a className="nav-item" href={`/status/${user?.id}`} target="_blank" rel="noreferrer" onClick={onNavigate}>
+          <a className="nav-item" href={user?.status_slug ? `/status/slug/${user.status_slug}` : `/status/${user?.id}`} target="_blank" rel="noreferrer" onClick={onNavigate}>
             <Icon name="globe" /> Status Pages
           </a>
         </nav>
 
         <div className="sidebar-footer">
-          <div className="sidebar-user">
-            <div className="avatar">{initial}</div>
+          <div className="sidebar-user" style={{ position: "relative" }} ref={menuRef}>
+            <button className="avatar-btn" onClick={() => setMenuOpen((v) => !v)} aria-label="Account menu">
+              <div className="avatar">{initial}</div>
+            </button>
+            {menuOpen && (
+              <div className="user-menu glass-2">
+                <div className="um-head">
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{user?.full_name || "Developer"}</div>
+                  <div className="email" style={{ fontSize: 11 }}>{user?.email}</div>
+                </div>
+                <button className="um-item" onClick={() => { setMenuOpen(false); nav("/settings"); }}>My Profile</button>
+                <button className="um-item" onClick={() => { setMenuOpen(false); nav("/settings"); }}>Settings</button>
+                <a className="um-item" href="/docs" target="_blank" rel="noreferrer">Documentation</a>
+                <button className="um-item" onClick={() => alert("Keyboard shortcuts — coming soon")}>Keyboard Shortcuts</button>
+                <button className="um-item" onClick={() => alert("What's New — v2.4.0: API & Security, System Health, richer Incidents")}>What's New</button>
+                <div className="um-sep" />
+                <button className="um-item danger" onClick={() => { logout(); nav("/login"); }}>Logout</button>
+              </div>
+            )}
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 600, fontSize: 13, color: "var(--on-surface)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.full_name || "Developer"}
@@ -53,6 +79,11 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
           <button className="nav-item" onClick={() => { logout(); nav("/login"); }} style={{ borderTop: "1px solid var(--outline)" }}>
             <Icon name="logout" /> Logout
           </button>
+        </div>
+        <div className="sidebar-foot">
+          <span>PulseWatch</span>
+          <span>v2.4.0</span>
+          <a href="/status/health" target="_blank" rel="noreferrer">System Status</a>
         </div>
       </aside>
     </>

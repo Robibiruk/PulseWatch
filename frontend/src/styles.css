@@ -161,6 +161,30 @@ a { color: var(--primary); text-decoration: none; }
   display: grid; place-items: center; font-weight: 700;
 }
 .sidebar-user .email { font-size: 12px; color: var(--on-surface-variant); }
+.avatar-btn { background: none; border: none; padding: 0; cursor: pointer; border-radius: 10px; }
+.avatar-btn:focus-visible { outline: 2px solid var(--primary); }
+.user-menu {
+  position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; z-index: 80;
+  border-radius: 14px; padding: 6px; min-width: 200px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.um-head { padding: 8px 10px; }
+.um-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: none; color: var(--on-surface); cursor: pointer;
+  padding: 9px 10px; border-radius: 9px; font-size: 13px;
+}
+.um-item:hover { background: var(--surface-container-high); }
+.um-item.danger { color: var(--red); }
+.um-sep { height: 1px; background: var(--outline); margin: 4px 2px; }
+.sidebar-foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; font-size: 11px; color: var(--on-surface-variant);
+  border-top: 1px solid var(--outline);
+}
+.sidebar-foot a { color: var(--on-surface-variant); text-decoration: none; }
+.sidebar-foot a:hover { color: var(--primary); }
 
 /* ── Topbar ── */
 .topbar {
@@ -405,10 +429,14 @@ label.field { display: block; font-size: 11px; font-weight: 600; letter-spacing:
 .price li svg { width: 17px; height: 17px; color: var(--green); flex: none; margin-top: 2px; }
 
 /* footer */
-.land-footer { position: relative; z-index: 2; border-top: var(--border); padding: 30px 24px;
-  text-align: center; color: var(--on-surface-muted); font-size: 13px; }
+.land-footer { position: relative; z-index: 2; border-top: var(--border); padding: 40px 24px 28px; color: var(--on-surface-muted); font-size: 13px; }
+.lf-cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; max-width: 1080px; margin: 0 auto; }
+.lf-col h4 { margin: 0 0 12px; font-size: 13px; color: var(--on-surface); }
+.lf-col a { display: block; color: var(--on-surface-variant); text-decoration: none; margin-bottom: 8px; font-size: 13px; }
+.lf-col a:hover { color: var(--primary); }
+.lf-bottom { display: flex; justify-content: space-between; max-width: 1080px; margin: 28px auto 0; padding-top: 18px; border-top: var(--border); font-size: 12px; color: var(--on-surface-variant); }
 
-/* ── Monitor detail bento ── */
+
 .bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 @media (max-width: 900px) { .bento { grid-template-columns: repeat(2, 1fr); } }
 .bento-card { padding: 22px; border-radius: var(--radius); display: flex; flex-direction: column; justify-content: space-between; min-height: 120px; }

@@ -4,15 +4,16 @@ import * as api from "../api";
 import Icon from "../components/Icon";
 
 export default function PublicStatus() {
-  const { ownerId } = useParams();
+  const { ownerId, slug } = useParams();
   const [data, setData] = useState<{ config: any; services: any[] } | null>(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    api.publicStatus(Number(ownerId))
-      .then(setData)
-      .catch((e) => setErr(e.message));
-  }, [ownerId]);
+    const fetch = slug
+      ? api.publicStatusBySlug(slug)
+      : api.publicStatus(Number(ownerId));
+    fetch.then(setData).catch((e) => setErr(e.message));
+  }, [ownerId, slug]);
 
   if (err) return (
     <div className="status-page" data-theme="neon">

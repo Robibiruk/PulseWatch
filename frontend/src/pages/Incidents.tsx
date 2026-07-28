@@ -8,6 +8,15 @@ function fmt(t?: string) {
   if (!t) return "—";
   return new Date(t).toLocaleString();
 }
+function severityOf(i: any) {
+  if (!i.resolved_at) {
+    if (i.status_code && i.status_code >= 500) return "Critical";
+    return "Major";
+  }
+  if (i.recovery_minutes != null && i.recovery_minutes > 30) return "Warning";
+  return "Info";
+}
+const SEV_COLOR: any = { Critical: "#ff453a", Major: "#ff9f0a", Warning: "#ffd60a", Info: "#30d158" };
 function ago(t?: string) {
   if (!t) return "";
   const s = Math.floor((Date.now() - new Date(t).getTime()) / 1000);
@@ -61,13 +70,18 @@ export default function Incidents() {
           <div className="fleet glass-2">
             <table className="fleet-grid">
               <thead>
-                <tr><th>Service</th><th>Incident</th><th>Started</th><th>Duration</th><th>AI note</th></tr>
+                <tr><th>Service</th><th>Severity</th><th>Incident</th><th>Started</th><th>Duration</th><th>AI note</th></tr>
               </thead>
               <tbody>
                 {list.map((i) => (
                   <tr key={i.id} style={{ cursor: "pointer" }} onClick={() => nav(`/monitor/${i.monitor_id}`)}>
                     <td>
                       <div className="svc-name" style={{ color: "var(--primary)" }}>{i.monitor_name || "—"}</div>
+                    </td>
+                    <td>
+                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, color: SEV_COLOR[severityOf(i)], background: `${SEV_COLOR[severityOf(i)]}22` }}>
+                        {severityOf(i)}
+                      </span>
                     </td>
                     <td>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
