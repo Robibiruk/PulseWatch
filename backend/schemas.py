@@ -19,6 +19,11 @@ class UserOut(BaseModel):
     created_at: datetime
     alerts_paused: bool = False
     telegram_chat_id: str | None = None
+    enabled_channels: str = "telegram,email"
+    alert_email: str | None = None
+    discord_webhook: str | None = None
+    slack_webhook: str | None = None
+    webhook_url: str | None = None
 
     @computed_field
     @property
@@ -34,8 +39,22 @@ class Token(BaseModel):
 # ── Monitor ──
 class MonitorCreate(BaseModel):
     name: str
-    url: str
+    url: str | None = None
     interval: int = 60
+    monitor_type: str = "http"
+    tags: str = ""
+    request_timeout: int = 10
+    ip_version: str = "auto"
+    follow_redirects: bool = True
+    check_ssl: bool = True
+    ssl_expiry_reminders: bool = True
+    domain_expiry_reminders: bool = False
+    http_method: str = "GET"
+    auth_type: str = "none"
+    auth_user: str | None = None
+    auth_pass: str | None = None
+    auth_bearer: str | None = None
+    up_status_codes: str = "2xx,3xx"
 
 
 class MonitorUpdate(BaseModel):
@@ -43,6 +62,21 @@ class MonitorUpdate(BaseModel):
     url: str | None = None
     interval: int | None = None
     enabled: bool | None = None
+    tags: str | None = None
+    request_timeout: int | None = None
+    ip_version: str | None = None
+    follow_redirects: bool | None = None
+    check_ssl: bool | None = None
+    ssl_expiry_reminders: bool | None = None
+    domain_expiry_reminders: bool | None = None
+    slow_response_alert: bool | None = None
+    slow_response_threshold_ms: int | None = None
+    up_status_codes: str | None = None
+    http_method: str | None = None
+    auth_type: str | None = None
+    auth_user: str | None = None
+    auth_pass: str | None = None
+    auth_bearer: str | None = None
 
 
 class CheckOut(BaseModel):
@@ -72,13 +106,29 @@ class MonitorOut(BaseModel):
     owner_id: int
     name: str
     url: str
+    monitor_type: str = "http"
     interval: int
     enabled: bool
     status: str
     consecutive_failures: int
     next_check: datetime
     last_checked: datetime | None
+    last_heartbeat: datetime | None = None
+    ssl_expires_at: datetime | None = None
     created_at: datetime
+    # monitoring parameters (free + stored paid options)
+    tags: str = ""
+    request_timeout: int = 10
+    ip_version: str = "auto"
+    follow_redirects: bool = True
+    check_ssl: bool = True
+    ssl_expiry_reminders: bool = True
+    domain_expiry_reminders: bool = False
+    slow_response_alert: bool = False
+    slow_response_threshold_ms: int | None = None
+    up_status_codes: str = "2xx,3xx"
+    http_method: str = "GET"
+    auth_type: str = "none"
     uptime_24h: float | None = None
     avg_response_time: float | None = None
 
@@ -119,3 +169,20 @@ class PublicService(BaseModel):
     uptime_24h: float
     avg_response_time: float | None
     spark: list[str] = []  # last checks: "up" | "down"
+
+
+# ── Status-page builder ──
+class StatusPageUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    theme: str | None = None
+    show_response_time: bool | None = None
+
+
+class StatusPageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    owner_id: int
+    title: str
+    description: str
+    theme: str
+    show_response_time: bool

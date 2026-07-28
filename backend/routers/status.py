@@ -1,19 +1,24 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models import Monitor, Check
-from schemas import PublicService
+from models import Monitor, Check, StatusPage
+from schemas import PublicService, StatusPageOut
 
 router = APIRouter(prefix="/status", tags=["public-status"])
 
 
-@router.get("/{owner_id}", response_model=list[PublicService])
+@router.get("/{owner_id}")
 async def public_status(owner_id: int, db: AsyncSession = Depends(get_db)):
-    """Public status page for a user. No auth required — safe to embed anywhere."""
+    """Public status page for a user. No auth required — safe to embed anywhere.
+
+    Returns the owner's status-page config (theme/title/description/capabilities)
+    together with the list of public services, so the page can render the
+    selected theme and feature toggles.
+    """
     res = await db.execute(select(Monitor).where(Monitor.owner_id == owner_id))
     monitors = list(res.scalars().all())
 
@@ -50,4 +55,17 @@ async def public_status(owner_id: int, db: AsyncSession = Depends(get_db)):
             uptime_24h=uptime, avg_response_time=round(avg, 1) if avg else None,
             spark=list(reversed(spark_rows)),
         ))
-    return services
+
+    sp = await db.get(StatusPage, owner_id)
+    if sp:
+        config = StatusPageOut.model_validate(sp).model_dump()
+    else:
+        config = {
+            "owner_id": owner_id,
+            "title": "PulseWatch Status",
+            "description": "",
+            "theme": "neon",
+            "show_response_time": True,
+        }
+
+    return {"config": config, "services": services}

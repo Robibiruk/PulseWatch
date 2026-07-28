@@ -135,11 +135,27 @@ async def create_monitor(
     payload: MonitorCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
 ):
     now = datetime.now(timezone.utc)
+    if payload.monitor_type == "http" and not payload.url:
+        raise HTTPException(status_code=422, detail="url is required for http monitors")
     mon = Monitor(
         owner_id=user.id,
         name=payload.name,
-        url=payload.url,
+        url=payload.url or "heartbeat://self",
         interval=payload.interval,
+        monitor_type=payload.monitor_type,
+        tags=payload.tags,
+        request_timeout=payload.request_timeout,
+        ip_version=payload.ip_version,
+        follow_redirects=payload.follow_redirects,
+        check_ssl=payload.check_ssl,
+        ssl_expiry_reminders=payload.ssl_expiry_reminders,
+        domain_expiry_reminders=payload.domain_expiry_reminders,
+        http_method=payload.http_method,
+        auth_type=payload.auth_type,
+        auth_user=payload.auth_user,
+        auth_pass=payload.auth_pass,
+        auth_bearer=payload.auth_bearer,
+        up_status_codes=payload.up_status_codes,
         next_check=now,
     )
     db.add(mon)
@@ -176,6 +192,37 @@ async def get_monitor(
     return detail
 
 
+@router.get("/{monitor_id}/analytics")
+async def monitor_analytics(
+    monitor_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
+    """Response-time analytics: recent series + summary stats."""
+    await _own(db, monitor_id, user)
+    day_ago = datetime.now(timezone.utc) - timedelta(hours=24)
+    rows = (
+        await db.execute(
+            select(Check)
+            .where(Check.monitor_id == monitor_id, Check.checked_at >= day_ago, Check.response_time.isnot(None))
+            .order_by(Check.checked_at.asc())
+        )
+    ).scalars().all()
+    series = [{"t": c.checked_at.isoformat(), "ms": c.response_time} for c in rows]
+    vals = [c.response_time for c in rows]
+    if vals:
+        vals_sorted = sorted(vals)
+        p95 = vals_sorted[min(len(vals_sorted) - 1, int(len(vals_sorted) * 0.95))]
+        summary = {
+            "count": len(vals),
+            "min_ms": round(min(vals), 1),
+            "avg_ms": round(sum(vals) / len(vals), 1),
+            "max_ms": round(max(vals), 1),
+            "p95_ms": round(p95, 1),
+        }
+    else:
+        summary = {"count": 0}
+    return {"series": series, "summary": summary}
+
+
 @router.patch("/{monitor_id}", response_model=MonitorOut)
 async def update_monitor(
     monitor_id: int, payload: MonitorUpdate,
@@ -183,6 +230,7 @@ async def update_monitor(
 ):
     mon = await _own(db, monitor_id, user)
     data = payload.model_dump(exclude_unset=True)
+    prev_enabled = mon.enabled
     for k, v in data.items():
         setattr(mon, k, v)
     if "interval" in data and mon.status == "up":
@@ -190,6 +238,21 @@ async def update_monitor(
         mon.next_check = datetime.now(timezone.utc) + timedelta(seconds=mon.interval)
     await db.commit()
     await db.refresh(mon)
+    # Notify on monitor start/stop (the "stopped" event), both channels.
+    if "enabled" in data and data["enabled"] != prev_enabled:
+        from notifications import send_control_message
+        if data["enabled"] is False:
+            await send_control_message(
+                f"⏸ Monitor Stopped\n\n{mon.name}\n{mon.url}\n\n"
+                "This monitor is paused and will no longer be checked or alert.",
+                user,
+            )
+        else:
+            await send_control_message(
+                f"▶️ Monitor Resumed\n\n{mon.name}\n{mon.url}\n\n"
+                "Checks are active again and alerts will fire on failure.",
+                user,
+            )
     return mon
 
 
