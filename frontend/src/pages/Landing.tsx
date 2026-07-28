@@ -1,68 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import Icon from "../components/Icon";
-
-// Animated network: nodes + a pulse travelling along the connecting lines.
-function NetworkPulse() {
-  const nodes = [
-    { id: "web", label: "Website A", x: 18, y: 32 },
-    { id: "api", label: "API Server", x: 50, y: 18 },
-    { id: "db", label: "Database", x: 82, y: 34 },
-    { id: "pay", label: "Payment API", x: 64, y: 74 },
-  ];
-  const links = [
-    [0, 1], [1, 2], [2, 3], [1, 3], [0, 3],
-  ];
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    let raf = 0;
-    let t = 0;
-    const tick = () => {
-      t = (t + 0.006) % 1;
-      const dots = root.querySelectorAll<HTMLElement>(".net-pulse");
-      dots.forEach((d, i) => {
-        const phase = (t + i / dots.length) % 1;
-        const [a, b] = links[i % links.length];
-        const na = nodes[a], nb = nodes[b];
-        const x = na.x + (nb.x - na.x) * phase;
-        const y = na.y + (nb.y - na.y) * phase;
-        d.style.left = `${x}%`;
-        d.style.top = `${y}%`;
-        d.style.opacity = String(0.2 + 0.8 * Math.sin(phase * Math.PI));
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  return (
-    <div className="net" ref={ref}>
-      {links.map((l, i) => {
-        const a = nodes[l[0]], b = nodes[l[1]];
-        const len = Math.hypot(b.x - a.x, b.y - a.y);
-        const ang = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
-        return (
-          <div key={i} className="net-line" style={{
-            left: `${a.x}%`, top: `${a.y}%`, width: `${len}%`, transform: `rotate(${ang}deg)`,
-          }} />
-        );
-      })}
-      {nodes.map((n) => (
-        <div key={n.id} className="net-node" style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-          <span className="d" /> {n.label}
-        </div>
-      ))}
-      {links.map((_, i) => (
-        <div key={`p${i}`} className="net-pulse" />
-      ))}
-    </div>
-  );
-}
 
 export default function Landing() {
   const nav = useNavigate();
@@ -73,13 +12,11 @@ export default function Landing() {
 
   return (
     <div className="land">
-      <div className="land-grid" />
-      <div className="land-glow" />
 
       <div className="land-nav">
         <div className="auth-logo" style={{ margin: 0 }}>
-          <span className="mark"><Icon name="heart-pulse" /></span>
-          <h1 style={{ color: "var(--on-surface)" }}>PulseWatch</h1>
+          <img src="/favicon/pulsewatch.png" alt="PulseWatch" className="auth-logo-img" style={{ height: 24 }} />
+          <span className="auth-logo-word" style={{ color: "var(--on-surface)" }}>PulseWatch</span>
         </div>
         <button className="btn-ghost btn btn-sm" onClick={go}>
           {user ? "Dashboard" : "Sign in"}
@@ -106,7 +43,6 @@ export default function Landing() {
           <div className="land-stat"><div className="v">Instant</div><div className="l">🔔 Alerts</div></div>
         </div>
 
-        <NetworkPulse />
       </section>
 
       {/* Trust / monitor anything */}

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import * as api from "../api";
 import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
+import MonitorEditor from "../components/MonitorEditor";
 
 function fmtTime(t?: string) {
   if (!t) return "—";
@@ -120,6 +121,7 @@ export default function MonitorDetail() {
   const nav = useNavigate();
   const [m, setM] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editor, setEditor] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -139,7 +141,15 @@ export default function MonitorDetail() {
         title={m.name}
         sub={m.url}
         actions={
-          <Link className="btn btn-ghost btn-sm" to="/dashboard">← Monitors</Link>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button className="btn btn-ghost btn-sm" onClick={async () => { await api.updateMonitor(m.id, { enabled: !m.enabled }); load(); }}>
+              <Icon name={m.enabled ? "pause" : "play"} size={16} /> {m.enabled ? "Pause" : "Resume"}
+            </button>
+            <button className="btn btn-sm" onClick={() => setEditor(true)}>
+              <Icon name="edit" size={16} /> Edit settings
+            </button>
+            <Link className="btn btn-ghost btn-sm" to="/dashboard">← Monitors</Link>
+          </div>
         }
       />
       <div className="content">
@@ -163,7 +173,7 @@ export default function MonitorDetail() {
         )}
 
         <div className="bento">
-          <Bento label="Uptime 24h" value={m.uptime_24h != null ? `${m.uptime_24h}%` : "—"} color="var(--green)" />
+          <Bento label="Uptime 24h" value={m.uptime_24h != null ? `${m.uptime_24h}%` : "—"} />
           <Bento label="Avg Response" value={m.avg_response_time != null ? `${Math.ceil(m.avg_response_time)}ms` : "—"} />
           <Bento label="Checks 24h" value={m.recent_checks?.length || 0} />
           <Bento label="Incidents" value={m.recent_incidents?.length || 0} color={(m.recent_incidents?.length || 0) ? "var(--red)" : "var(--green)"} sub={open ? "1 active" : "none active"} />
@@ -185,6 +195,15 @@ export default function MonitorDetail() {
 
         <div className="section-title">Incident history</div>
         <Timeline incidents={m.recent_incidents || []} />
+
+        {editor && (
+          <MonitorEditor
+            monitor={m}
+            onClose={() => setEditor(false)}
+            onSaved={(mm) => { setEditor(false); setM(mm); load(); }}
+            onDeleted={() => nav("/dashboard")}
+          />
+        )}
       </div>
     </Shell>
   );

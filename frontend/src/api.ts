@@ -49,19 +49,38 @@ export const tgLink = () => request<any>("/auth/telegram/link");
 export const tgUnlink = () => request<any>("/auth/telegram/unlink", { method: "POST" });
 export const tgPause = () => request<any>("/auth/telegram/pause", { method: "POST" });
 export const tgResume = () => request<any>("/auth/telegram/resume", { method: "POST" });
+export const tgChannels = () => request<any>("/auth/telegram/channels");
+export const tgSetChannels = (body: any) =>
+  request<any>("/auth/telegram/channels", { method: "POST", body: JSON.stringify(body) });
+
+// ── Heartbeat & Status page ──
+export const createHeartbeat = (body: { name: string; url?: string; interval: number }) =>
+  request<any>("/api/heartbeat/create", { method: "POST", body: JSON.stringify(body) });
+export const heartbeatToken = (id: number) => request<any>(`/api/monitors/${id}/heartbeat-token`);
+export const statusPage = () => request<any>("/status-page");
+export const saveStatusPage = (body: any) =>
+  request<any>("/status-page", { method: "PUT", body: JSON.stringify(body) });
+
+export const testNotification = (body: { email?: string; channels?: string[] }) =>
+  request<any>("/notifications/test", { method: "POST", body: JSON.stringify(body) });
 
 // ── Monitors ──
 export const listMonitors = () => request<any[]>("/monitors");
 export const getMonitor = (id: number) => request<any>(`/monitors/${id}`);
 export const monitorSummary = () => request<any>("/monitors/summary");
 export const listIncidents = () => request<any[]>("/monitors/incidents");
-export const createMonitor = (body: { name: string; url: string; interval: number }) =>
-  request<any>("/monitors", { method: "POST", body: JSON.stringify(body) });
+export const createMonitor = (body: {
+  name: string; url: string; interval?: number; monitor_type?: string;
+  tags?: string; request_timeout?: number; ip_version?: string; follow_redirects?: boolean;
+  check_ssl?: boolean; ssl_expiry_reminders?: boolean; domain_expiry_reminders?: boolean;
+  http_method?: string; auth_type?: string; auth_user?: string | null; auth_pass?: string | null;
+  auth_bearer?: string | null; up_status_codes?: string;
+}) => request<any>("/monitors", { method: "POST", body: JSON.stringify(body) });
 export const updateMonitor = (id: number, body: any) =>
   request<any>(`/monitors/${id}`, { method: "PATCH", body: JSON.stringify(body) });
 export const deleteMonitor = (id: number) => request<void>(`/monitors/${id}`, { method: "DELETE" });
 
 // ── Public status ──
-export const publicStatus = (ownerId: number) => request<any[]>(`/status/${ownerId}`);
+export const publicStatus = (ownerId: number) => request<{ config: any; services: any[] }>(`/status/${ownerId}`);
 
 export { ApiError };

@@ -5,6 +5,7 @@ import { useAuth } from "../auth";
 import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
 import NewMonitorWizard from "../components/NewMonitorWizard";
+import MonitorEditor from "../components/MonitorEditor";
 
 function statusOf(m: any) {
   if (!m.enabled) return "paused";
@@ -49,6 +50,8 @@ export default function Dashboard() {
   const [monitors, setMonitors] = useState<any[] | null>(null);
   const [summary, setSummary] = useState<any>(null);
   const [wizard, setWizard] = useState(false);
+  const [editor, setEditor] = useState<any | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
   const [err, setErr] = useState("");
 
   async function load() {
@@ -61,6 +64,18 @@ export default function Dashboard() {
     }
   }
   useEffect(() => { load(); }, []);
+
+  async function togglePause(m: any) {
+    setBusyId(m.id);
+    try {
+      await api.updateMonitor(m.id, { enabled: !m.enabled });
+      await load();
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   if (monitors === null) return <Shell><div className="center-screen"><span className="spinner" /></div></Shell>;
 
@@ -135,9 +150,26 @@ export default function Dashboard() {
                       <td style={{ textAlign: "right" }} className="cell-mono">{m.avg_response_time != null ? `${Math.ceil(m.avg_response_time)}` : "—"}</td>
                       <td style={{ textAlign: "right" }} className="cell-mono">{Math.round(m.interval / 60)}m</td>
                       <td style={{ textAlign: "right" }}>
-                        <button className="row-action" onClick={(e) => { e.stopPropagation(); nav(`/monitor/${m.id}`); }}>
-                          <Icon name="chevron-right" />
-                        </button>
+                        <div className="row-actions">
+                          <button
+                            className="row-action"
+                            title={m.enabled ? "Pause" : "Resume"}
+                            disabled={busyId === m.id}
+                            onClick={(e) => { e.stopPropagation(); togglePause(m); }}
+                          >
+                            <Icon name={m.enabled ? "pause" : "play"} size={16} />
+                          </button>
+                          <button
+                            className="row-action"
+                            title="Edit"
+                            onClick={(e) => { e.stopPropagation(); setEditor(m); }}
+                          >
+                            <Icon name="edit" size={16} />
+                          </button>
+                          <button className="row-action" onClick={(e) => { e.stopPropagation(); nav(`/monitor/${m.id}`); }}>
+                            <Icon name="chevron-right" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -152,6 +184,15 @@ export default function Dashboard() {
         <NewMonitorWizard
           onClose={() => setWizard(false)}
           onCreated={() => { setWizard(false); load(); }}
+        />
+      )}
+
+      {editor !== null && (
+        <MonitorEditor
+          monitor={editor}
+          onClose={() => setEditor(null)}
+          onSaved={(m) => { setEditor(null); load(); }}
+          onDeleted={() => { setEditor(null); load(); }}
         />
       )}
     </Shell>

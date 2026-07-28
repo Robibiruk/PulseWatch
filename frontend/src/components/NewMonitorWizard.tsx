@@ -105,14 +105,14 @@ export default function NewMonitorWizard({ onClose, onCreated }: { onClose: () =
               <label className="field">Notifications</label>
               <div className="switch-row">
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span className="ic" style={{ background: "rgba(0,242,255,0.12)", color: "var(--primary)" }}><Icon name="bell" /></span>
+                  <span className="ic" style={{ background: "rgba(255,255,255,0.12)", color: "var(--primary)" }}><Icon name="bell" /></span>
                   <div><h4>Telegram alerts</h4><div className="sub">Instant outage pings to your chat</div></div>
                 </div>
                 <div className={`switch ${ntelegram ? "on" : ""}`} onClick={() => setNTelegram((v) => !v)} />
               </div>
               <div className="switch-row">
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span className="ic" style={{ background: "rgba(182,0,248,0.12)", color: "var(--purple-soft)" }}><Icon name="mail" /></span>
+                  <span className="ic" style={{ background: "rgba(255,255,255,0.10)", color: "var(--purple-soft)" }}><Icon name="mail" /></span>
                   <div><h4>Email reports</h4><div className="sub">Daily summary + incident digests</div></div>
                 </div>
                 <div className={`switch ${nemail ? "on" : ""}`} onClick={() => setNEmail((v) => !v)} />
@@ -130,7 +130,7 @@ export default function NewMonitorWizard({ onClose, onCreated }: { onClose: () =
           {step < 3 ? (
             <button className="btn" disabled={!canNext} onClick={() => setStep(step + 1)}>Continue →</button>
           ) : (
-            <button className="btn btn-green" disabled={busy} onClick={submit}>{busy ? "…" : "Create Monitor"}</button>
+            <button className="btn" disabled={busy} onClick={submit}>{busy ? "…" : "Create Monitor"}</button>
           )}
         </div>
       </div>

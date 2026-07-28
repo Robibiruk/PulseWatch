@@ -30,8 +30,8 @@ export default function Login() {
       <div className="auth-glow" />
       <form className="auth-card glass" onSubmit={submit}>
         <div className="auth-logo">
-          <span className="mark"><Icon name="heart-pulse" /></span>
-          <h1>PulseWatch</h1>
+          <img src="/favicon/pulsewatch.png" alt="PulseWatch" className="auth-logo-img" />
+          <span className="auth-logo-word">PulseWatch</span>
         </div>
         <h2 style={{ margin: "0 0 4px", fontSize: 26, textAlign: "center" }}>
           {mode === "login" ? "Welcome back" : "Create your account"}

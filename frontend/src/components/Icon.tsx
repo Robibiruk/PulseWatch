@@ -65,6 +65,20 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  pause: <path d="M6 4h4v16H6zM14 4h4v16h-4z" />,
+  play: <path d="M6 4l14 8-14 8z" />,
+  tag: (
+    <>
+      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3H4v5.59A2 2 0 0 0 4.59 10l9.58 9.59a2 2 0 0 0 2.83 0l3.59-3.59a2 2 0 0 0 0-2.59Z" />
+      <circle cx="7.5" cy="7.5" r="1.5" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M10 11v6M14 11v6" />
+    </>
+  ),
   settings: (
     <>
       <circle cx="12" cy="12" r="3" />
@@ -162,6 +176,7 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   x: <path d="M18 6 6 18M6 6l12 12" />,
+  menu: <path d="M3 6h18M3 12h18M3 18h18" />,
   history: (
     <>
       <path d="M3 3v5h5" />
