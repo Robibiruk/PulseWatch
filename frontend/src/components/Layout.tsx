@@ -36,7 +36,7 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
             </NavLink>
           ))}
           <a className="nav-item" href={`/status/${user?.id}`} target="_blank" rel="noreferrer" onClick={onNavigate}>
-            <Icon name="globe" /> Public Status
+            <Icon name="globe" /> Status Pages
           </a>
         </nav>
 
