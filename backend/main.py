@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from database import init_db
-from routers import auth, monitors, status, telegram, heartbeat, statuspage, notifications
+from routers import auth, monitors, status, telegram, heartbeat, statuspage, notifications, platform
 from telegram_bot import run_telegram_bot
 from worker import run_forever
 
@@ -54,6 +54,7 @@ app.include_router(telegram.router)
 app.include_router(heartbeat.router)
 app.include_router(statuspage.router)
 app.include_router(notifications.router)
+app.include_router(platform.router)
 
 
 @app.get("/health")

@@ -64,6 +64,33 @@ export const saveStatusPage = (body: any) =>
 export const testNotification = (body: { email?: string; channels?: string[] }) =>
   request<any>("/notifications/test", { method: "POST", body: JSON.stringify(body) });
 
+// ── Platform (account, tokens, sessions, health, support) ──
+export const systemHealth = () => request<any>("/api/platform/health");
+export const about = () => request<any>("/api/platform/about");
+export const listTokens = () => request<any[]>("/api/platform/tokens");
+export const createToken = (name: string) =>
+  request<any>("/api/platform/tokens", { method: "POST", body: JSON.stringify({ name }) });
+export const revokeToken = (id: number) =>
+  request<any>(`/api/platform/tokens/${id}`, { method: "DELETE" });
+export const listSessions = () => request<any>("/api/platform/sessions");
+export const changePassword = (current_password: string, new_password: string) =>
+  request<any>("/api/platform/account/password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+export const changeDisplayName = (full_name: string) =>
+  request<any>("/api/platform/account/display-name", {
+    method: "POST",
+    body: JSON.stringify({ full_name }),
+  });
+export const exportData = () => request<any>("/api/platform/account/export");
+export const deleteAccount = (password: string) =>
+  request<any>("/api/platform/account", { method: "DELETE", body: JSON.stringify({ password }) });
+export const submitSupport = (body: { subject?: string; message: string; email?: string }) =>
+  request<any>("/api/platform/support", { method: "POST", body: JSON.stringify(body) });
+export const submitFeedback = (body: { rating: number; message?: string }) =>
+  request<any>("/api/platform/feedback", { method: "POST", body: JSON.stringify(body) });
+
 // ── Monitors ──
 export const listMonitors = () => request<any[]>("/monitors");
 export const getMonitor = (id: number) => request<any>(`/monitors/${id}`);

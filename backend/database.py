@@ -104,6 +104,7 @@ async def _migrate_columns(conn) -> None:
         await conn.run_sync(_add_missing, "monitors", col, coltype)
 
     # StatusPage config
-    from models import StatusPage
+    from models import StatusPage, ApiToken
     await conn.run_sync(_create_table_if_missing, StatusPage)
+    await conn.run_sync(_create_table_if_missing, ApiToken)
 

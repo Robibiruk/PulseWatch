@@ -19,8 +19,11 @@ function Row({ icon, brand, title, desc, children, style }: any) {
     </div>
   );
 }
-function Upgrade() {
-  return <span className="upgrade-pill"><Icon name="lock" size={12} /> Upgrade</span>;
+
+function HealthDot({ status }: { status: string }) {
+  const color = status === "operational" || status === "connected" || status === "running" || status === "healthy"
+    ? "var(--success, #34C759)" : "var(--warn, #ff9f0a)";
+  return <span style={{ width: 9, height: 9, borderRadius: 9, background: color, boxShadow: `0 0 8px ${color}`, display: "inline-block" }} />;
 }
 
 export default function Settings() {
@@ -48,6 +51,30 @@ export default function Settings() {
   const [spSaving, setSpSaving] = useState(false);
   const [spSaved, setSpSaved] = useState(false);
 
+  // Account
+  const [displayName, setDisplayName] = useState(user?.full_name || "");
+  const [curPw, setCurPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+
+  // API & Security
+  const [tokens, setTokens] = useState<any[]>([]);
+  const [tokenName, setTokenName] = useState("");
+  const [newToken, setNewToken] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<any>(null);
+
+  // System Health
+  const [health, setHealth] = useState<any>(null);
+  // About
+  const [about, setAbout] = useState<any>(null);
+  // Support / Feedback
+  const [supportSubj, setSupportSubj] = useState("");
+  const [supportMsg, setSupportMsg] = useState("");
+  const [supportDone, setSupportDone] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [fbMsg, setFbMsg] = useState("");
+  const [fbDone, setFbDone] = useState(false);
+
   const pubUrl = `${window.location.origin}/status/${user?.id}`;
   const copy = async () => {
     try { await navigator.clipboard.writeText(pubUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }
@@ -60,25 +87,18 @@ export default function Settings() {
       const r = await api.tgLink();
       setLink(r.link);
       setTgLinked(false);
-      // Open the native Telegram app via tg:// deep link using the real bot
-      // username. If that fails (no app / blocked), fall back to https t.me.
       const u = r.bot_username;
       const tok = r.token;
       const httpsLink = r.link;
       const w = (u && tok) ? window.open(`tg://resolve?domain=${u}&start=${tok}`, "_blank") : null;
-      if (!w) {
-        window.open(httpsLink, "_blank");
-      } else {
-        // If the tg:// window didn't actually open/navigate, open the https link.
+      if (!w) { window.open(httpsLink, "_blank"); }
+      else {
         setTimeout(() => {
           try {
-            if (w.closed === false && (!w.location || w.location.href === "about:blank")) {
-              window.open(httpsLink, "_blank");
-            }
+            if (w.closed === false && (!w.location || w.location.href === "about:blank")) { window.open(httpsLink, "_blank"); }
           } catch { /* cross-origin; assume tg:// worked */ }
         }, 800);
       }
-      // Poll for the link completing (user presses Start in the bot -> /connect).
       let tries = 0;
       const iv = setInterval(async () => {
         tries++;
@@ -141,10 +161,66 @@ export default function Settings() {
     } finally { setSpSaving(false); }
   };
 
+  // Load platform data
+  const loadPlatform = async () => {
+    try { setHealth(await api.systemHealth()); } catch { /* ignore */ }
+    try { setTokens(await api.listTokens()); } catch { /* ignore */ }
+    try { setSessions(await api.listSessions()); } catch { /* ignore */ }
+    try { setAbout(await api.about()); } catch { /* ignore */ }
+  };
+  useEffect(() => { loadPlatform(); }, []);
+
+  const makeToken = async () => {
+    try {
+      const r = await api.createToken(tokenName || "New token");
+      setNewToken(r.token);
+      setTokenName("");
+      loadPlatform();
+    } catch (e: any) { alert(e.message || "Failed to create token"); }
+  };
+  const revoke = async (id: number) => {
+    try { await api.revokeToken(id); loadPlatform(); } catch (e: any) { alert(e.message || "Failed"); }
+  };
+  const doPw = async () => {
+    setPwMsg("");
+    try { await api.changePassword(curPw, newPw); setPwMsg("Password updated ✓"); setCurPw(""); setNewPw(""); }
+    catch (e: any) { setPwMsg(e.message || "Failed"); }
+  };
+  const doName = async () => {
+    try { await api.changeDisplayName(displayName); setPwMsg("Display name updated ✓"); }
+    catch (e: any) { setPwMsg(e.message || "Failed"); }
+  };
+  const doExport = async () => {
+    try {
+      const data = await api.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "pulsewatch-export.json";
+      a.click();
+    } catch (e: any) { alert(e.message || "Export failed"); }
+  };
+  const doDelete = async () => {
+    if (!confirm("Delete your account and all monitors? This cannot be undone.")) return;
+    const pw = prompt("Type your password to confirm:");
+    if (!pw) return;
+    try { await api.deleteAccount(pw); localStorage.removeItem("pw_token"); window.location.href = "/login"; }
+    catch (e: any) { alert(e.message || "Failed"); }
+  };
+  const sendSupport = async () => {
+    try { await api.submitSupport({ subject: supportSubj, message: supportMsg }); setSupportDone(true); setTimeout(() => setSupportDone(false), 2500); setSupportSubj(""); setSupportMsg(""); }
+    catch (e: any) { alert(e.message || "Failed"); }
+  };
+  const sendFb = async () => {
+    try { await api.submitFeedback({ rating, message: fbMsg }); setFbDone(true); setTimeout(() => setFbDone(false), 2500); setFbMsg(""); setRating(0); }
+    catch (e: any) { alert(e.message || "Failed"); }
+  };
+
   return (
     <Shell>
-      <Topbar title="Settings" sub="Manage notifications and your public status page" />
+      <Topbar title="Settings" sub="Manage notifications, security, and your public status page" />
       <div className="content">
+        {/* ── Notifications ── */}
         <div className="set-card glass-2">
           <h3>Telegram</h3>
           <p>Link your account to the PulseWatch bot for instant outage pings.</p>
@@ -207,8 +283,9 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* ── Status Pages ── */}
         <div className="set-card glass-2">
-          <h3>Public Status Page</h3>
+          <h3>Status Pages</h3>
           <p>Share a live status page with your users — no auth required.</p>
           <input className="inp" placeholder="Page title" value={spTitle} onChange={(e) => setSpTitle(e.target.value)} />
           <input className="inp" placeholder="Description (optional)" value={spDesc} onChange={(e) => setSpDesc(e.target.value)} />
@@ -222,15 +299,128 @@ export default function Settings() {
           <button className="btn btn-primary btn-sm" style={{ marginTop: 10 }} onClick={spSave} disabled={spSaving}>
             {spSaved ? "Saved ✓" : "Save page"}
           </button>
-          <Row icon="link" title="Open page" desc="Preview your public monitor board" style={{ marginTop: 12 }}>
+          <Row icon="link" title="Public page" desc="Preview your public monitor board" style={{ marginTop: 12 }}>
             <a className="btn btn-ghost btn-sm" href={pubUrl} target="_blank" rel="noreferrer">Open ↗</a>
           </Row>
         </div>
 
+        {/* ── Account ── */}
         <div className="set-card glass-2">
           <h3>Account</h3>
-          <p>Signed in as.</p>
-          <Row icon="users" title={user?.full_name || "Developer"} desc={user?.email || ""} />
+          <p>Manage your profile and sign-in.</p>
+          <input className="inp" placeholder="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={doName}>Save name</button>
+          <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14 }}>
+            <input className="inp" type="password" placeholder="Current password" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
+            <input className="inp" type="password" placeholder="New password (min 8)" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
+            <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={doPw}>Change password</button>
+            {pwMsg && <div style={{ fontSize: 12, marginTop: 6, color: "var(--primary)" }}>{pwMsg}</div>}
+          </div>
+          <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14, display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={doExport}>Export data</button>
+            <button className="btn btn-ghost btn-sm" style={{ color: "#ff453a" }} onClick={doDelete}>Delete account</button>
+          </div>
+        </div>
+
+        {/* ── API & Security ── */}
+        <div className="set-card glass-2">
+          <h3>API &amp; Security</h3>
+          <p>Personal access tokens for the PulseWatch API.</p>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <input className="inp" placeholder="Token name" value={tokenName} onChange={(e) => setTokenName(e.target.value)} />
+            <button className="btn btn-primary btn-sm" onClick={makeToken}>Generate</button>
+          </div>
+          {newToken && (
+            <div className="token-box" style={{ background: "rgba(52,199,89,0.12)", border: "1px solid #34C759", borderRadius: 8, padding: 10, marginBottom: 10, fontSize: 12 }}>
+              <div style={{ opacity: 0.8, marginBottom: 4 }}>Copy this token now — it won't be shown again:</div>
+              <code style={{ wordBreak: "break-all" }}>{newToken}</code>
+              <button className="btn btn-ghost btn-sm" style={{ marginTop: 6 }} onClick={() => { navigator.clipboard.writeText(newToken); }}>Copy</button>
+            </div>
+          )}
+          {tokens.map((t) => (
+            <Row key={t.id} icon="key" title={t.name} desc={`${t.preview}${t.last_used_at ? ` · used ${new Date(t.last_used_at).toLocaleDateString()}` : ""}`}>
+              <button className="btn btn-ghost btn-sm" onClick={() => revoke(t.id)}>Revoke</button>
+            </Row>
+          ))}
+          <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14 }}>
+            <Row icon="shield" title="Two-Factor Authentication" desc="Coming soon">
+              <span className="upgrade-pill">Soon</span>
+            </Row>
+            {sessions && (
+              <Row icon="users" title="Sessions" desc={`${sessions.current?.device || "This device"} · current`}>
+                <button className="btn btn-ghost btn-sm" disabled>Log out others (soon)</button>
+              </Row>
+            )}
+          </div>
+        </div>
+
+        {/* ── System Health ── */}
+        <div className="set-card glass-2">
+          <h3>System Health</h3>
+          <p>Live status of PulseWatch's own infrastructure.</p>
+          {health ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                ["api", "PulseWatch API"],
+                ["worker", "Worker"],
+                ["database", "Database"],
+                ["telegram", "Telegram"],
+                ["queue", "Queue"],
+              ].map(([k, label]) => {
+                const h = health[k];
+                if (!h) return null;
+                return (
+                  <div key={k} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <HealthDot status={h.status} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.7, textTransform: "capitalize" }}>{h.status}{h.seconds_ago != null ? ` · ${h.seconds_ago}s ago` : ""}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : <div style={{ opacity: 0.6, fontSize: 13 }}>Loading…</div>}
+        </div>
+
+        {/* ── About PulseWatch ── */}
+        <div className="set-card glass-2">
+          <h3>About PulseWatch</h3>
+          <Row icon="heart-pulse" title="Version" desc={about?.version || "2.4.0"} />
+          <Row icon="server" title="Built by" desc={about?.developer || "Robel Biruk"} />
+          <Row icon="settings" title="Tech stack" desc={(about?.tech_stack || ["React", "FastAPI", "PostgreSQL", "Neon"]).join(" · ")} />
+          <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+            {about?.github && <a className="btn btn-ghost btn-sm" href={about.github} target="_blank" rel="noreferrer"><BrandIcon name="github" size={14} /> GitHub</a>}
+            <a className="btn btn-ghost btn-sm" href="/docs" target="_blank" rel="noreferrer"><Icon name="link" size={14} /> Docs</a>
+          </div>
+        </div>
+
+        {/* ── Support ── */}
+        <div className="set-card glass-2">
+          <h3>Support</h3>
+          <p>Need help? Reach out — we usually respond within 24 hours.</p>
+          <input className="inp" placeholder="Subject" value={supportSubj} onChange={(e) => setSupportSubj(e.target.value)} />
+          <textarea className="inp" placeholder="Message" rows={3} value={supportMsg} onChange={(e) => setSupportMsg(e.target.value)} style={{ resize: "vertical" }} />
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 6 }} onClick={sendSupport}>Send message</button>
+          {supportDone && <span style={{ fontSize: 12, color: "var(--primary)", marginLeft: 8 }}>Sent ✓</span>}
+          <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14 }}>
+            <h4 style={{ margin: "0 0 8px" }}>Feedback</h4>
+            <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} onClick={() => setRating(n)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: n <= rating ? "#ffd60a" : "rgba(255,255,255,0.3)" }}>★</button>
+              ))}
+            </div>
+            <textarea className="inp" placeholder="What can we improve?" rows={2} value={fbMsg} onChange={(e) => setFbMsg(e.target.value)} style={{ resize: "vertical" }} />
+            <button className="btn btn-ghost btn-sm" style={{ marginTop: 6 }} onClick={sendFb}>Submit feedback</button>
+            {fbDone && <span style={{ fontSize: 12, color: "var(--primary)", marginLeft: 8 }}>Thanks! ✓</span>}
+          </div>
+          <div style={{ marginTop: 12, display: "flex", gap: 12, fontSize: 12, opacity: 0.7, flexWrap: "wrap" }}>
+            <a href="/docs" target="_blank" rel="noreferrer">Documentation</a>
+            <a href="https://github.com/Robibiruk" target="_blank" rel="noreferrer">GitHub</a>
+            <span>Privacy</span>
+            <span>Terms</span>
+            <a href={about?.support_email ? `mailto:${about.support_email}` : "#"}>Contact</a>
+          </div>
         </div>
       </div>
     </Shell>
