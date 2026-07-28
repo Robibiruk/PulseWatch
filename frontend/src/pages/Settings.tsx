@@ -2,15 +2,16 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../auth";
 import * as api from "../api";
 import Icon from "../components/Icon";
+import BrandIcon from "../components/BrandIcon";
 import { Shell, Topbar } from "../components/Layout";
 import { IosSwitch } from "../components/IosSwitch";
 
-function Row({ icon, title, desc, children }: any) {
+function Row({ icon, brand, title, desc, children, style }: any) {
   return (
-    <div className="set-row">
+    <div className="set-row" style={style}>
       <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
         <span className="ic" style={{ background: "rgba(255,255,255,0.1)", color: "var(--primary)", width: 38, height: 38, borderRadius: 10, display: "grid", placeItems: "center" }}>
-          <Icon name={icon} size={19} />
+          {brand ? <BrandIcon name={brand} size={19} /> : <Icon name={icon} size={19} />}
         </span>
         <div className="k">{title}<small>{desc}</small></div>
       </div>
@@ -149,21 +150,21 @@ export default function Settings() {
           <p>Link your account to the PulseWatch bot for instant outage pings.</p>
           {tgLinked ? (
             <>
-              <Row icon="check" title="Connected" desc="Your Telegram chat is linked">
+              <Row brand="telegram" title="Connected" desc="Your Telegram chat is linked">
                 <button className="btn btn-ghost btn-sm" onClick={unlink} disabled={tgBusy}>Unlink</button>
               </Row>
-              <Row icon="bell" title={paused ? "Alerts paused" : "Alerts active"} desc={paused ? "You won't get pings until resumed" : "PulseWatch will ping you on incidents"}>
+              <Row brand="telegram" title={paused ? "Alerts paused" : "Alerts active"} desc={paused ? "You won't get pings until resumed" : "PulseWatch will ping you on incidents"}>
                 <button className={`btn btn-sm ${paused ? "btn-primary" : "btn-ghost"}`} onClick={togglePause} disabled={tgBusy}>
                   {paused ? "Resume" : "Pause"}
                 </button>
               </Row>
             </>
           ) : link ? (
-            <Row icon="send" title="Open Telegram to finish" desc="Tap below and press start in the bot">
+            <Row brand="telegram" title="Open Telegram to finish" desc="Tap below and press start in the bot">
               <a className="btn btn-primary btn-sm" href={link} target="_blank" rel="noreferrer">Open ↗</a>
             </Row>
           ) : (
-            <Row icon="send" title="Not connected" desc="Generate a secure link, then open it in Telegram">
+            <Row brand="telegram" title="Not connected" desc="Generate a secure link, then open it in Telegram">
               <button className="btn btn-primary btn-sm" onClick={connect} disabled={tgBusy}>Connect</button>
             </Row>
           )}
@@ -172,10 +173,10 @@ export default function Settings() {
         <div className="set-card glass-2">
           <h3>Alert Channels</h3>
           <p>Choose where PulseWatch sends downtime &amp; recovery alerts.</p>
-          <Row icon="bell" title="Telegram" desc="Instant pings to your linked chat"><IosSwitch on={channels.telegram} onChange={(v: boolean) => setChannels((c) => ({ ...c, telegram: v }))} /></Row>
-          <Row icon="mail" title="Email" desc="Resend incident reports to your email"><IosSwitch on={channels.email} onChange={(v: boolean) => setChannels((c) => ({ ...c, email: v }))} /></Row>
-          <Row icon="message" title="Discord" desc="Post to a Discord webhook"><IosSwitch on={channels.discord} onChange={(v: boolean) => setChannels((c) => ({ ...c, discord: v }))} /></Row>
-          <Row icon="hash" title="Slack" desc="Post to a Slack incoming webhook"><IosSwitch on={channels.slack} onChange={(v: boolean) => setChannels((c) => ({ ...c, slack: v }))} /></Row>
+          <Row brand="telegram" title="Telegram" desc="Instant pings to your linked chat"><IosSwitch on={channels.telegram} onChange={(v: boolean) => setChannels((c) => ({ ...c, telegram: v }))} /></Row>
+          <Row brand="gmail" title="Email" desc="Resend incident reports to your email"><IosSwitch on={channels.email} onChange={(v: boolean) => setChannels((c) => ({ ...c, email: v }))} /></Row>
+          <Row brand="discord" title="Discord" desc="Post to a Discord webhook"><IosSwitch on={channels.discord} onChange={(v: boolean) => setChannels((c) => ({ ...c, discord: v }))} /></Row>
+          <Row brand="slack" title="Slack" desc="Post to a Slack incoming webhook"><IosSwitch on={channels.slack} onChange={(v: boolean) => setChannels((c) => ({ ...c, slack: v }))} /></Row>
           <Row icon="link" title="Webhook" desc="Generic JSON webhook (Zapier/Make/custom)"><IosSwitch on={channels.webhook} onChange={(v: boolean) => setChannels((c) => ({ ...c, webhook: v }))} /></Row>
           {channels.discord && (
             <input className="inp" placeholder="Discord webhook URL" value={discord} onChange={(e) => setDiscord(e.target.value)} />

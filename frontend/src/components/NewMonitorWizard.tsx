@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createMonitor } from "../api";
 import Icon from "./Icon";
+import BrandIcon from "./BrandIcon";
 import { IosSwitch } from "./IosSwitch";
 
 type Type = "website" | "api" | "server" | "cron";
@@ -106,14 +107,14 @@ export default function NewMonitorWizard({ onClose, onCreated }: { onClose: () =
               <label className="field">Notifications</label>
               <div className="switch-row">
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span className="ic" style={{ background: "rgba(255,255,255,0.12)", color: "var(--primary)" }}><Icon name="bell" /></span>
+                  <span className="ic" style={{ background: "rgba(255,255,255,0.12)", color: "var(--primary)" }}><BrandIcon name="telegram" size={18} /></span>
                   <div><h4>Telegram alerts</h4><div className="sub">Instant outage pings to your chat</div></div>
                 </div>
                 <IosSwitch on={ntelegram} onChange={() => setNTelegram((v) => !v)} />
               </div>
               <div className="switch-row">
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span className="ic" style={{ background: "rgba(255,255,255,0.10)", color: "var(--purple-soft)" }}><Icon name="mail" /></span>
+                  <span className="ic" style={{ background: "rgba(255,255,255,0.10)", color: "var(--purple-soft)" }}><BrandIcon name="gmail" size={18} /></span>
                   <div><h4>Email reports</h4><div className="sub">Daily summary + incident digests</div></div>
                 </div>
                 <IosSwitch on={nemail} onChange={() => setNEmail((v) => !v)} />

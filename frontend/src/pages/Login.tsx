@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import Icon from "../components/Icon";
+import BrandIcon from "../components/BrandIcon";
 
 export default function Login() {
   const { login, register } = useAuth();
@@ -41,7 +42,7 @@ export default function Login() {
         </p>
 
         <button type="button" className="github-btn" onClick={() => setErr("GitHub OAuth coming soon — use email for now.")}>
-          <Icon name="github" /> Continue with GitHub
+        <BrandIcon name="github" size={18} /> Continue with GitHub
         </button>
         <div className="divider">or email</div>
 
