@@ -3,6 +3,7 @@ import { useAuth } from "../auth";
 import * as api from "../api";
 import Icon from "../components/Icon";
 import { Shell, Topbar } from "../components/Layout";
+import { IosSwitch } from "../components/IosSwitch";
 
 function Row({ icon, title, desc, children }: any) {
   return (
@@ -17,8 +18,8 @@ function Row({ icon, title, desc, children }: any) {
     </div>
   );
 }
-function Switch({ on, set }: any) {
-  return <div className={`switch ${on ? "on" : ""}`} onClick={() => set(!on)} />;
+function Upgrade() {
+  return <span className="upgrade-pill"><Icon name="lock" size={12} /> Upgrade</span>;
 }
 
 export default function Settings() {
@@ -171,11 +172,11 @@ export default function Settings() {
         <div className="set-card glass-2">
           <h3>Alert Channels</h3>
           <p>Choose where PulseWatch sends downtime &amp; recovery alerts.</p>
-          <Row icon="bell" title="Telegram" desc="Instant pings to your linked chat"><Switch on={channels.telegram} set={(v: boolean) => setChannels((c) => ({ ...c, telegram: v }))} /></Row>
-          <Row icon="mail" title="Email" desc="Resend incident reports to your email"><Switch on={channels.email} set={(v: boolean) => setChannels((c) => ({ ...c, email: v }))} /></Row>
-          <Row icon="message" title="Discord" desc="Post to a Discord webhook"><Switch on={channels.discord} set={(v: boolean) => setChannels((c) => ({ ...c, discord: v }))} /></Row>
-          <Row icon="hash" title="Slack" desc="Post to a Slack incoming webhook"><Switch on={channels.slack} set={(v: boolean) => setChannels((c) => ({ ...c, slack: v }))} /></Row>
-          <Row icon="link" title="Webhook" desc="Generic JSON webhook (Zapier/Make/custom)"><Switch on={channels.webhook} set={(v: boolean) => setChannels((c) => ({ ...c, webhook: v }))} /></Row>
+          <Row icon="bell" title="Telegram" desc="Instant pings to your linked chat"><IosSwitch on={channels.telegram} onChange={(v: boolean) => setChannels((c) => ({ ...c, telegram: v }))} /></Row>
+          <Row icon="mail" title="Email" desc="Resend incident reports to your email"><IosSwitch on={channels.email} onChange={(v: boolean) => setChannels((c) => ({ ...c, email: v }))} /></Row>
+          <Row icon="message" title="Discord" desc="Post to a Discord webhook"><IosSwitch on={channels.discord} onChange={(v: boolean) => setChannels((c) => ({ ...c, discord: v }))} /></Row>
+          <Row icon="hash" title="Slack" desc="Post to a Slack incoming webhook"><IosSwitch on={channels.slack} onChange={(v: boolean) => setChannels((c) => ({ ...c, slack: v }))} /></Row>
+          <Row icon="link" title="Webhook" desc="Generic JSON webhook (Zapier/Make/custom)"><IosSwitch on={channels.webhook} onChange={(v: boolean) => setChannels((c) => ({ ...c, webhook: v }))} /></Row>
           {channels.discord && (
             <input className="inp" placeholder="Discord webhook URL" value={discord} onChange={(e) => setDiscord(e.target.value)} />
           )}

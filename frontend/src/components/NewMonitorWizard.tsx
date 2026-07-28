@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createMonitor } from "../api";
 import Icon from "./Icon";
+import { IosSwitch } from "./IosSwitch";
 
 type Type = "website" | "api" | "server" | "cron";
 const TYPES: Record<Type, { icon: string; title: string; desc: string; ph: string }> = {
@@ -108,14 +109,14 @@ export default function NewMonitorWizard({ onClose, onCreated }: { onClose: () =
                   <span className="ic" style={{ background: "rgba(255,255,255,0.12)", color: "var(--primary)" }}><Icon name="bell" /></span>
                   <div><h4>Telegram alerts</h4><div className="sub">Instant outage pings to your chat</div></div>
                 </div>
-                <div className={`switch ${ntelegram ? "on" : ""}`} onClick={() => setNTelegram((v) => !v)} />
+                <IosSwitch on={ntelegram} onChange={() => setNTelegram((v) => !v)} />
               </div>
               <div className="switch-row">
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <span className="ic" style={{ background: "rgba(255,255,255,0.10)", color: "var(--purple-soft)" }}><Icon name="mail" /></span>
                   <div><h4>Email reports</h4><div className="sub">Daily summary + incident digests</div></div>
                 </div>
-                <div className={`switch ${nemail ? "on" : ""}`} onClick={() => setNEmail((v) => !v)} />
+                <IosSwitch on={nemail} onChange={() => setNEmail((v) => !v)} />
               </div>
             </>
           )}

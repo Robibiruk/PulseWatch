@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as api from "../api";
 import Icon from "./Icon";
+import { IosSwitch } from "./IosSwitch";
 
 type M = any;
 
@@ -10,16 +11,6 @@ const IP_VERSIONS = [
   { v: "ipv4", label: "IPv4 only" },
   { v: "ipv6", label: "IPv6 only" },
 ];
-
-function Switch({ on, onChange, locked }: { on: boolean; onChange: () => void; locked?: boolean }) {
-  return (
-    <div
-      className={`switch ${on ? "on" : ""} ${locked ? "locked" : ""}`}
-      onClick={() => !locked && onChange()}
-      style={locked ? { pointerEvents: "none", opacity: 0.5 } : undefined}
-    />
-  );
-}
 
 function Upgrade() {
   return <span className="upgrade-pill"><Icon name="lock" size={12} /> Upgrade</span>;
@@ -189,15 +180,15 @@ export default function MonitorEditor({
           <div className="ed-section-title">SSL certificate and Domain checks</div>
           <div className="switch-row">
             <div><h4>Check SSL errors</h4><div className="sub">Fail the monitor if the cert is invalid.</div></div>
-            <Switch on={checkSsl} onChange={() => setCheckSsl((v) => !v)} />
+            <IosSwitch on={checkSsl} onChange={() => setCheckSsl((v) => !v)} />
           </div>
           <div className="switch-row">
             <div><h4>SSL expiry reminders</h4><div className="sub">Warn when the certificate nears expiry.</div></div>
-            <Switch on={sslExpiry} onChange={() => setSslExpiry((v) => !v)} />
+            <IosSwitch on={sslExpiry} onChange={() => setSslExpiry((v) => !v)} />
           </div>
           <div className="switch-row">
             <div><h4>Domain expiry reminders</h4><div className="sub">Warn before the domain registration lapses.</div></div>
-            <Switch on={domainExpiry} onChange={() => setDomainExpiry((v) => !v)} />
+            <IosSwitch on={domainExpiry} onChange={() => setDomainExpiry((v) => !v)} />
           </div>
 
           <div className="ed-section-title">Advanced settings</div>
@@ -214,7 +205,7 @@ export default function MonitorEditor({
 
           <div className="switch-row">
             <div><h4>Follow redirections</h4><div className="sub">If disabled, 3xx codes are returned as-is.</div></div>
-            <Switch on={followRedirects} onChange={() => setFollowRedirects((v) => !v)} />
+            <IosSwitch on={followRedirects} onChange={() => setFollowRedirects((v) => !v)} />
           </div>
 
           <Field label="Up HTTP status codes" hint="Which codes count as 'up'. 4xx/5xx options are a paid feature.">
