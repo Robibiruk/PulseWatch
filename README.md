@@ -57,40 +57,74 @@ It is designed to run cheaply (or free) on platforms like Render, Railway, Fly.i
 **Dev (single process):** the FastAPI app's lifespan starts the worker loop and the
 Telegram bot in-process. Great for local work.
 
-```
-┌──────────────┐  REST/JWT  ┌──────────────────────────────┐
-│  React SPA   │ ─────────▶ │  FastAPI API (main:app)       │
-│  (Vite/TS)   │ ◀────────  │  /auth/* /monitors/* /status/*│
-└──────────────┘            │  /heartbeat/* /status-page    │
-                            └──────────┬───────────────────┘
-                                       │ (lifespan, dev only)
-                  ┌────────────────────┼───────────────────────┐
-                  ▼                    ▼                        ▼
-           ┌─────────────┐     ┌──────────────┐      ┌────────────────┐
-           │ Worker loop │     │ Telegram bot │      │ Notifications   │
-           │ (scheduler)│     │ (long-poll) │      │ tg/email/discord│
-           └─────────────┘     └──────────────┘      │ /slack/webhook │
-                  │                    │                 └────────────────┘
-                  ▼                    ▼                          │
-            check_site()      /start <token> ──▶ /auth/telegram/connect
-                  │
-                  ▼
-            incidents + alerts
+```mermaid
+graph TD
+    A[React SPA<br/>Vite + TS] -->|REST + JWT| B[FastAPI App<br/>main:app]
+    B -->|lifespan, dev only| C[Worker Loop<br/>scheduler]
+    B -->|lifespan, dev only| D[Telegram Bot<br/>long-poll]
+    C --> E[check_site]
+    E --> F[(Incidents + Alerts)]
+    D -->|/start token| G[/auth/telegram/connect/]
+    F --> H[Notifications<br/>Telegram / Email / Discord / Slack / Webhook]
 ```
 
 **Prod (recommended): separate services.** Render (or any PaaS) runs the API, the
 worker, and the bot as independent services against one Postgres. This scales the
 check engine horizontally without duplicating alerts.
 
+```mermaid
+graph TD
+    subgraph Services
+        API[pulsewatch-api]
+        Worker[pulsewatch-worker]
+        Bot[pulsewatch-bot]
+    end
+    DB[(PostgreSQL / Neon)]
+    API --> DB
+    Worker -->|claims monitors<br/>SELECT FOR UPDATE SKIP LOCKED| DB
+    Bot --> DB
+    API -->|serves dashboard +<br/>public status pages| Users((Users))
+    Worker --> Notify[Notification Dispatcher]
+    Bot --> Notify
 ```
-            ┌─────────────── FastAPI API (pulsewatch-api) ───────────┐
-            │  serves the dashboard + public status pages + webhooks │
-            └───────────────────────────┬───────────────────────────┘
-                                        │  PostgreSQL (Neon)
-            ┌───────────────────────────┼───────────────────────────┐
-            ▼                           ▼                            ▼
-   pulsewatch-worker          pulsewatch-bot              (notifications run
-   scheduler + checker         long-poll Telegram          inside worker/api)
+
+**Telegram account-linking flow** — documented as a sequence diagram because the
+linking flow (username-vs-numeric-id deep link) has caused regressions before:
+
+```mermaid
+sequenceDiagram
+    participant U as User (SPA)
+    participant API as FastAPI
+    participant TG as Telegram Bot API
+    participant B as User's Telegram App
+
+    U->>API: GET /auth/telegram/link
+    API->>TG: getMe (resolve bot username)
+    API-->>U: https://t.me/<BotUsername>?start=<token>
+    U->>B: Opens deep link, taps Start
+    B->>API: POST /auth/telegram/connect {token, chat_id}
+    API-->>U: Settings flips to "Connected"
+```
+
+**Worker claim-lock / lease state machine** — how a monitor moves through the
+distributed scheduler (crash recovery via `SKIP LOCKED` + lease expiry):
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: created
+    Idle --> Claimed: worker claims<br/>(SKIP LOCKED + lease)
+    Claimed --> Checking: probe begins
+    Checking --> Released: check done / ok
+    Checking --> Incident: down detected
+    Incident --> Released: resolved
+    Released --> Idle: claim cleared
+    Claimed --> Idle: lease expired<br/>(crashed worker)
+    note right of Claimed
+        claimed_until + claim_token
+        written atomically.
+        Other replicas SKIP LOCKED
+        rows another worker holds.
+    end note
 ```
 
 **Duplicate-check prevention.** The scheduler claims each due monitor with a
