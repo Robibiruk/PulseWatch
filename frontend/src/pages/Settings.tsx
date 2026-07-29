@@ -429,9 +429,6 @@ export default function Settings() {
             <input className="inp" placeholder="Token name" value={tokenName} onChange={(e) => setTokenName(e.target.value)} />
             <button className="btn btn-primary btn-sm" onClick={makeToken}>Generate</button>
           </div>
-          {supportErr && supportErr.includes(token) && (
-            <div style={{ fontSize: 12, marginBottom: 8, color: "#ff6b6b" }}>{supportErr}</div>
-          )}
           {newToken && (
             <div className="token-box" style={{ background: "rgba(52,199,89,0.12)", border: "1px solid #34C759", borderRadius: 8, padding: 10, marginBottom: 10, fontSize: 12 }}>
               <div style={{ opacity: 0.8, marginBottom: 4 }}>Copy this token now — it won't be shown again:</div>
