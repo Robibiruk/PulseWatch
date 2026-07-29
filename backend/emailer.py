@@ -67,13 +67,17 @@ def _wrap(title: str, accent: str, body_html: str, preheader: str = "") -> str:
 </body></html>"""
 
 
+import re
+
 def _text_from_html(html: str) -> str:
-    # crude plaintext fallback: strip tags + collapse whitespace
-    import re
+    import re as _re
     t = re.sub(r"<br\s*/?>", "\n", html)
     t = re.sub(r"</?(div|h1|h2|p|li|tr|table)[^>]*>", "\n", t)
     t = re.sub(r"<[^>]+>", "", t)
+    # collapse repeated newlines (from nested <div>/<p>/<tr>...</tr>) down to a max
     t = re.sub(r"\n{3,}", "\n\n", t)
+    # drop pure whitespace lines so Telegram/email plaintext doesn't have huge vertical gaps
+    t = "\n".join(line for line in re.split(r"\n", t) if line.strip())
     return t.strip()
 
 

@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [editor, setEditor] = useState<any | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [err, setErr] = useState("");
+  const [filter, setFilter] = useState<"all" | "up" | "down" | "paused" | "ssl">("all");
 
   async function load() {
     try {
@@ -84,7 +85,6 @@ export default function Dashboard() {
   const upPct = summary && summary.total ? Math.round((summary.up / summary.total) * 100) : 0;
   const lastTick = summary?.last_check ? new Date(summary.last_check).toLocaleTimeString() : null;
 
-  const [filter, setFilter] = useState<"all" | "up" | "down" | "paused" | "ssl">("all");
   const now = Date.now();
   const visible = (monitors || []).filter((m) => {
     if (filter === "all") return true;

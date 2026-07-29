@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import * as api from "../api";
 import Icon from "../components/Icon";
@@ -26,8 +27,58 @@ function HealthDot({ status }: { status: string }) {
   return <span style={{ width: 9, height: 9, borderRadius: 9, background: color, boxShadow: `0 0 8px ${color}`, display: "inline-block" }} />;
 }
 
+function ComingSoonModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card modal-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>What&apos;s New</h3>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" style={{ textAlign: "center", padding: "18px 4px" }}>
+          <div style={{ fontSize: 38, marginBottom: 8 }}>🚀</div>
+          <h4 style={{ margin: "0 0 6px" }}>Coming soon</h4>
+          <p style={{ margin: 0, opacity: 0.72, fontSize: 13 }}>
+            Public status page themes, Slack workflows, API v2, keyboard shortcuts, and more.
+          </p>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={onClose}>Got it</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutsModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card modal-wide" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>Keyboard Shortcuts</h3>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <p style={{ opacity: 0.7, margin: "0 0 14px", fontSize: 13 }}>Navigate faster without touching the mouse.</p>
+          <table className="shortcuts-table">
+            <thead><tr><th>Keys</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>G then D</code></td><td>Go to Dashboard</td></tr>
+              <tr><td><code>G then S</code></td><td>Go to Settings</td></tr>
+              <tr><td><code>G then M</code></td><td>Go to Monitors</td></tr>
+              <tr><td><code>G then I</code></td><td>Go to Incidents</td></tr>
+              <tr><td><code>⌘ / Ctrl + K</code></td><td>Command palette <span style={{ opacity: 0.7 }}>(coming soon)</span></td></tr>
+              <tr><td><code>?</code></td><td>Show shortcuts</td></tr>
+            </tbody>
+          </table>
+          <p style={{ opacity: 0.65, marginTop: 14, fontSize: 12 }}>Press <code>Esc</code> or click outside to close.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { user } = useAuth();
+  const nav = useNavigate();
   const [ntelegram, setNTelegram] = useState(true);
   const [nemail, setNEmail] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -35,6 +86,8 @@ export default function Settings() {
   const [paused, setPaused] = useState(!!user?.alerts_paused);
   const [link, setLink] = useState<string | null>(null);
   const [tgBusy, setTgBusy] = useState(false);
+  const [comingOpen, setComingOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Alert channels
   const [channels, setChannels] = useState({ telegram: true, email: true, discord: false, slack: false, webhook: false });
@@ -71,9 +124,14 @@ export default function Settings() {
   const [supportSubj, setSupportSubj] = useState("");
   const [supportMsg, setSupportMsg] = useState("");
   const [supportDone, setSupportDone] = useState(false);
+  const [supportErr, setSupportErr] = useState("");
+  const [regenMsg, setRegenMsg] = useState("");
   const [rating, setRating] = useState(0);
   const [fbMsg, setFbMsg] = useState("");
   const [fbDone, setFbDone] = useState(false);
+  const [fbErr, setFbErr] = useState("");
+  // Formspree (optional: set VITE_FORMSPREE_ENDPOINT in .env)
+  const FORMSPREE = import.meta.env.VITE_FORMSPREE_ENDPOINT as string | undefined;
 
   const pubUrl = user?.status_slug
     ? `${window.location.origin}/status/slug/${user.status_slug}`
@@ -89,8 +147,15 @@ export default function Settings() {
     } catch { /* user cancelled */ }
   };
   const regen = async () => {
-    try { const r = await api.regenerateStatusSlug(); setCopied(false); alert("Status page URL regenerated:\n" + window.location.origin + r.url); loadPlatform(); }
-    catch (e: any) { alert(e.message || "Failed"); }
+    try {
+      const r = await api.regenerateStatusSlug();
+      setCopied(false); setSupportErr("");
+      setRegenMsg(window.location.origin + r.url);
+      setSupportDone(true);
+      setTimeout(() => { setSupportDone(false); setRegenMsg(""); }, 2500);
+      loadPlatform();
+    }
+    catch (e: any) { setSupportDone(false); setRegenMsg(""); setSupportErr(e.message || "Failed"); }
   };
 
   const connect = async () => {
@@ -121,6 +186,8 @@ export default function Settings() {
         if (tries >= 10) clearInterval(iv);
       }, 3000);
     } catch (e: any) {
+      setLink(null);
+      setTgLinked(false);
       alert(e.message || "Failed to start Telegram link");
     } finally { setTgBusy(false); }
   };
@@ -143,7 +210,7 @@ export default function Settings() {
       await api.tgSetChannels({ enabled_channels: enabled, discord_webhook: discord, slack_webhook: slack, webhook_url: webhook });
       setSaved(true); setTimeout(() => setSaved(false), 1500);
     } catch (e: any) {
-      alert(e.message || "Failed to save channels");
+      setSupportErr(e.message || "Failed to save channels");
     } finally { setTgBusy(false); }
   };
   const testNotify = async () => {
@@ -169,7 +236,7 @@ export default function Settings() {
       await api.saveStatusPage({ title: spTitle, description: spDesc, theme: spTheme });
       setSpSaved(true); setTimeout(() => setSpSaved(false), 1500);
     } catch (e: any) {
-      alert(e.message || "Failed to save status page");
+      setSupportErr(e.message || "Failed to save status page");
     } finally { setSpSaving(false); }
   };
 
@@ -188,10 +255,12 @@ export default function Settings() {
       setNewToken(r.token);
       setTokenName("");
       loadPlatform();
-    } catch (e: any) { alert(e.message || "Failed to create token"); }
+    } catch (e: any) {
+      setSupportErr(e.message || "Failed to create token");
+    }
   };
   const revoke = async (id: number) => {
-    try { await api.revokeToken(id); loadPlatform(); } catch (e: any) { alert(e.message || "Failed"); }
+    try { await api.revokeToken(id); loadPlatform(); } catch (e: any) { setSupportErr(e.message || "Failed"); }
   };
   const doPw = async () => {
     setPwMsg("");
@@ -210,22 +279,34 @@ export default function Settings() {
       a.href = URL.createObjectURL(blob);
       a.download = "pulsewatch-export.json";
       a.click();
-    } catch (e: any) { alert(e.message || "Export failed"); }
+    } catch (e: any) { setSupportErr(e.message || "Export failed"); }
   };
   const doDelete = async () => {
     if (!confirm("Delete your account and all monitors? This cannot be undone.")) return;
     const pw = prompt("Type your password to confirm:");
     if (!pw) return;
     try { await api.deleteAccount(pw); localStorage.removeItem("pw_token"); window.location.href = "/login"; }
-    catch (e: any) { alert(e.message || "Failed"); }
+    catch (e: any) { setSupportErr(e.message || "Failed"); }
   };
   const sendSupport = async () => {
-    try { await api.submitSupport({ subject: supportSubj, message: supportMsg }); setSupportDone(true); setTimeout(() => setSupportDone(false), 2500); setSupportSubj(""); setSupportMsg(""); }
-    catch (e: any) { alert(e.message || "Failed"); }
+    try {
+      if (FORMSPREE) {
+        await fetch(FORMSPREE, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ subject: supportSubj, message: supportMsg, _subject: supportSubj || "PulseWatch Support" }) });
+      } else {
+        await api.submitSupport({ subject: supportSubj, message: supportMsg });
+      }
+      setSupportDone(true); setTimeout(() => setSupportDone(false), 2500); setSupportSubj(""); setSupportMsg(""); setSupportErr("");
+    } catch (e: any) { setSupportErr(e.message || "Failed"); }
   };
   const sendFb = async () => {
-    try { await api.submitFeedback({ rating, message: fbMsg }); setFbDone(true); setTimeout(() => setFbDone(false), 2500); setFbMsg(""); setRating(0); }
-    catch (e: any) { alert(e.message || "Failed"); }
+    try {
+      if (FORMSPREE) {
+        await fetch(FORMSPREE, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ message: fbMsg, _subject: `PulseWatch Feedback ${rating}/5` }) });
+      } else {
+        await api.submitFeedback({ rating, message: fbMsg });
+      }
+      setFbDone(true); setTimeout(() => setFbDone(false), 2500); setFbMsg(""); setRating(0); setFbErr("");
+    } catch (e: any) { setFbErr(e.message || "Failed"); }
   };
 
   return (
@@ -311,6 +392,7 @@ export default function Settings() {
           <button className="btn btn-primary btn-sm" style={{ marginTop: 10 }} onClick={spSave} disabled={spSaving}>
             {spSaved ? "Saved ✓" : "Save page"}
           </button>
+          {regenMsg && <div style={{ marginTop: 8, fontSize: 12, color: "var(--primary)" }}>{regenMsg}</div>}
           <Row icon="link" title="Public page" desc="Preview your public monitor board" style={{ marginTop: 12 }}>
             <div style={{ display: "flex", gap: 8 }}>
               <a className="btn btn-ghost btn-sm" href={pubUrl} target="_blank" rel="noreferrer">Open ↗</a>
@@ -342,11 +424,14 @@ export default function Settings() {
         {/* ── API & Security ── */}
         <div className="set-card glass-2">
           <h3>API &amp; Security</h3>
-          <p>Personal access tokens for the PulseWatch API.</p>
+          <p>Personal access tokens help you integrate PulseWatch into scripts and CI.</p>
           <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
             <input className="inp" placeholder="Token name" value={tokenName} onChange={(e) => setTokenName(e.target.value)} />
             <button className="btn btn-primary btn-sm" onClick={makeToken}>Generate</button>
           </div>
+          {supportErr && supportErr.includes(token) && (
+            <div style={{ fontSize: 12, marginBottom: 8, color: "#ff6b6b" }}>{supportErr}</div>
+          )}
           {newToken && (
             <div className="token-box" style={{ background: "rgba(52,199,89,0.12)", border: "1px solid #34C759", borderRadius: 8, padding: 10, marginBottom: 10, fontSize: 12 }}>
               <div style={{ opacity: 0.8, marginBottom: 4 }}>Copy this token now — it won't be shown again:</div>
@@ -374,7 +459,7 @@ export default function Settings() {
         {/* ── System Health ── */}
         <div className="set-card glass-2">
           <h3>System Health</h3>
-          <p>Live status of PulseWatch's own infrastructure.</p>
+          <p>Live status of PulseWatch&apos;s own infrastructure.</p>
           {health ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[
@@ -408,7 +493,10 @@ export default function Settings() {
           <Row icon="settings" title="Tech stack" desc={(about?.tech_stack || ["React", "FastAPI", "PostgreSQL", "Neon"]).join(" · ")} />
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
             {about?.github && <a className="btn btn-ghost btn-sm" href={about.github} target="_blank" rel="noreferrer"><BrandIcon name="github" size={14} /> GitHub</a>}
-            <a className="btn btn-ghost btn-sm" href="/docs" target="_blank" rel="noreferrer"><Icon name="link" size={14} /> Docs</a>
+            <button className="btn btn-ghost btn-sm" onClick={() => nav("/docs")}><Icon name="link" size={14} /> Docs</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowShortcuts(true)}>
+              <Icon name="terminal" size={14} /> Shortcuts
+            </button>
           </div>
         </div>
 
@@ -418,8 +506,11 @@ export default function Settings() {
           <p>Need help? Reach out — we usually respond within 24 hours.</p>
           <input className="inp" placeholder="Subject" value={supportSubj} onChange={(e) => setSupportSubj(e.target.value)} />
           <textarea className="inp" placeholder="Message" rows={3} value={supportMsg} onChange={(e) => setSupportMsg(e.target.value)} style={{ resize: "vertical" }} />
-          <button className="btn btn-primary btn-sm" style={{ marginTop: 6 }} onClick={sendSupport}>Send message</button>
-          {supportDone && <span style={{ fontSize: 12, color: "var(--primary)", marginLeft: 8 }}>Sent ✓</span>}
+          <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <button className="btn btn-primary btn-sm" onClick={sendSupport}>Send message</button>
+            {supportDone && <span style={{ fontSize: 12, color: "var(--primary)" }}>Sent ✓</span>}
+            {supportErr && !comingOpen && <span style={{ fontSize: 12, color: "#ff6b6b" }}>{supportErr}</span>}
+          </div>
           <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14 }}>
             <h4 style={{ margin: "0 0 8px" }}>Feedback</h4>
             <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
@@ -428,18 +519,17 @@ export default function Settings() {
               ))}
             </div>
             <textarea className="inp" placeholder="What can we improve?" rows={2} value={fbMsg} onChange={(e) => setFbMsg(e.target.value)} style={{ resize: "vertical" }} />
-            <button className="btn btn-ghost btn-sm" style={{ marginTop: 6 }} onClick={sendFb}>Submit feedback</button>
-            {fbDone && <span style={{ fontSize: 12, color: "var(--primary)", marginLeft: 8 }}>Thanks! ✓</span>}
-          </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 12, fontSize: 12, opacity: 0.7, flexWrap: "wrap" }}>
-            <a href="/docs" target="_blank" rel="noreferrer">Documentation</a>
-            <a href="https://github.com/Robibiruk" target="_blank" rel="noreferrer">GitHub</a>
-            <span>Privacy</span>
-            <span>Terms</span>
-            <a href={about?.support_email ? `mailto:${about.support_email}` : "#"}>Contact</a>
+            <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <button className="btn btn-ghost btn-sm" onClick={sendFb}>Submit feedback</button>
+              {fbDone && <span style={{ fontSize: 12, color: "var(--primary)" }}>Thanks! ✓</span>}
+              {fbErr && <span style={{ fontSize: 12, color: "#ff6b6b" }}>{fbErr}</span>}
+            </div>
           </div>
         </div>
       </div>
+
+      {comingOpen && <ComingSoonModal onClose={() => setComingOpen(false)} />}
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
     </Shell>
   );
 }

@@ -5,6 +5,11 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import MonitorDetail from "./pages/MonitorDetail";
 import Incidents from "./pages/Incidents";
+import Profile from "./pages/Profile";
+import Docs from "./pages/Docs";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import License from "./pages/License";
 import Settings from "./pages/Settings";
 import PublicStatus from "./pages/PublicStatus";
 import Loader from "./components/Loader";
@@ -33,6 +38,12 @@ export default function App() {
       <Route path="/monitor/:id" element={<RequireAuth><MonitorDetail /></RequireAuth>} />
       <Route path="/incidents" element={<RequireAuth><Incidents /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+      <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+      <Route path="/docs" element={<RequireAuth><Docs /></RequireAuth>} />
+      <Route path="/docs/:group/:id" element={<RequireAuth><Docs /></RequireAuth>} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/license" element={<License />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
