@@ -1,12 +1,16 @@
 name: PulseWatch Monitor
 
-# The "always-awake" worker — runs on GitHub's free tier every minute.
-# Each run: connect to Neon, probe all due monitors, save checks, fire alerts.
-# No paid server required.
+# The "always-awake" worker — runs on GitHub's free tier (public repo: no
+# Actions-minute cost). Each run: connect to Neon, probe all due monitors,
+# save checks, fire alerts. No paid server required.
+# Note: GitHub's schedule guarantee is ~5 minutes (the shortest reliable
+# interval for the schedule event), so this cron is a safety net; the Render
+# API's in-process worker covers faster polling while that web service is
+# awake. The claim-lock (SELECT ... FOR UPDATE SKIP LOCKED) dedupes the two.
 on:
   schedule:
-    # Minute granularity (GitHub's finest). UTC cron.
-    - cron: "*/1 * * * *"
+    # UTC cron. GitHub may delay scheduled runs under load.
+    - cron: "*/5 * * * *"
   # Allow manual runs from the Actions tab.
   workflow_dispatch:
 
