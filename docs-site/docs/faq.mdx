@@ -1,0 +1,29 @@
+---
+sidebar_position: 12
+---
+
+# FAQ
+
+## Why didn't I receive an alert?
+
+Check that Telegram, Email, or your webhook is configured. Also confirm your monitor is not paused and that the notification channel did not silently fail delivery.
+
+## How often are monitors checked?
+
+You can choose `1m`, `5m`, `10m`, `15m`, or `30m` intervals depending on monitor plan and configuration.
+
+## Do you support black-box checks for private services?
+
+Public website and API checks work over the internet. For private services, heartbeat monitoring or self-hosted probes may be required.
+
+## Where is data stored?
+
+Monitor data is stored in the configured backend database. Status pages are served as public read endpoints.
+
+## Can I test alerts without creating an incident?
+
+Yes. Use **Test Notifications** from Settings. This sends a simulated incident without affecting uptime statistics.
+
+## What happens if a monitor flaps?
+
+PulseWatch uses retry logic before declaring an incident, which reduces false positives from transient failures.

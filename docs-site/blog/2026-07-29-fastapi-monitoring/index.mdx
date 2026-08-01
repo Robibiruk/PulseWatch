@@ -1,0 +1,30 @@
+---
+sidebar_position: 7
+date: 2026-07-29
+slug: building-pulsewatch-with-fastapi
+title: "Building an Open-Source Monitoring Platform with FastAPI"
+authors: [robel]
+tags: [engineering, open-source]
+---
+
+PulseWatch uses a small backend surface intentionally: FastAPI for the API, PostgreSQL for state, async workers for checks, and a notification layer that formats the same incident differently per channel.
+
+## Backend
+
+FastAPI gives typed request/response contracts and async-ready endpoints. The monitoring loop does not block the API because heavy work is moved into background workers.
+
+## Workers
+
+Workers execute monitor checks, store results, evaluate retry logic, and emit events. Keeping this path independent from the web layer makes retries, scheduled intervals, and burst handling easier to reason about.
+
+## Storage
+
+PostgreSQL holds monitor definitions, checks, incidents, notification metadata, and status page configuration. It favors relational clarity and queryability over polyglot persistence.
+
+## Frontend
+
+React and Tailwind give a fast iteration surface for dashboard, monitor management, and status pages without introducing unnecessary framework weight.
+
+## Deployment
+
+The result is a stack that is easy to run locally, straightforward to deploy, and inspectable end-to-end without proprietary integrations.

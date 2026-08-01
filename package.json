@@ -1,0 +1,10 @@
+{
+  "name": "pulsewatch",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "docs": "cd docs-site && npm run start",
+    "start-docs": "start \"PulseWatch Docs\" cmd /k \"cd /d docs-site && npm run start\"",
+    "dev:all": "npm run start-docs && cd frontend && npm run dev"
+  }
+}

@@ -1,4 +1,13 @@
+import sys
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Windows consoles default to cp1252, which crashes on the emoji used in alert
+# copy (e.g. 🚨). Force UTF-8 so the worker/notifications print fallbacks safely
+# on any platform. Guarded for exotic runtimes without reconfigure().
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 class Settings(BaseSettings):

@@ -39,6 +39,4 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
           CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
-          FAILURE_THRESHOLD: ${{ secrets.FAILURE_THRESHOLD }}
-          CONFIRMATION_DELAY: ${{ secrets.CONFIRMATION_DELAY }}
         run: python backend/worker_runner.py

@@ -1,0 +1,61 @@
+---
+sidebar_position: 5
+---
+
+# Incidents & AI Explanations
+
+PulseWatch not only detects incidents; it also helps you understand them.
+
+## Incident Lifecycle
+
+```mermaid
+flowchart LR
+  Healthy --> Failed Check
+  Failed Check --> Automatic Retry
+  Automatic Retry --> Confirmed Failure
+  Confirmed Failure --> Incident Opened
+  Incident Opened --> Monitoring Continues
+  Monitoring Continues --> Recovery Detected
+  Recovery Detected --> Incident Closed
+```
+
+## Supported Incident Types
+
+- HTTP errors
+- Timeout
+- DNS failure
+- SSL expiration
+- Connection refused
+- Slow response
+- Unexpected redirects
+- Keyword mismatch
+- Heartbeat missed
+
+## AI Diagnosis
+
+PulseWatch analyzes failures and provides likely causes.
+
+Example:
+
+```text
+HTTP 502 Bad Gateway
+
+Possible Causes
+• Backend application unavailable
+• Reverse proxy failure
+• Recent deployment issue
+
+Recommended Actions
+1. Verify application is running
+2. Check reverse proxy
+3. Review deployment logs
+```
+
+## Severity Levels
+
+| Level | Meaning |
+| --- | --- |
+| 🟢 Info | Noteworthy but not actionable |
+| 🟡 Warning | Potential risk or performance drop |
+| 🟠 Major | Service degradation affecting users |
+| 🔴 Critical | Full outage or data-impacting failure |

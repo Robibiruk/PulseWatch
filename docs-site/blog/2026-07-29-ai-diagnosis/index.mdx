@@ -1,0 +1,38 @@
+---
+sidebar_position: 8
+date: 2026-07-29
+slug: ai-incident-diagnosis
+title: "AI Incident Diagnosis: How PulseWatch Explains Outages"
+authors: [robel]
+tags: [engineering, product, monitoring]
+---
+
+Outages are noisy by default: status codes, timestamps, retries, and incident metadata. PulseWatch adds diagnosis to reduce the gap between detection and likely cause.
+
+## How it works
+
+PulseWatch analyzes failure patterns against known incident signatures. The output includes likely causes and recommended actions rather than raw payload fragments.
+
+## Example
+
+```text
+HTTP 502 Bad Gateway
+
+Possible causes:
+- backend application unavailable
+- reverse proxy failure
+- recent deployment issue
+
+Recommended actions:
+1. verify application is running
+2. check reverse proxy
+3. review deployment logs
+```
+
+## Practical goal
+
+The goal is not to replace on-call judgment. It is to compress early investigation so operators can confirm direction faster.
+
+## Future direction
+
+Rule-based diagnosis is the current foundation. LLM-assisted explanations are the next layer, gated by confidence scoring and clear actionability checks.

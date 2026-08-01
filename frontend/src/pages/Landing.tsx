@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import Icon from "../components/Icon";
+import { DOCS_API_URL, DOCS_HOME_URL } from "../docsSite";
 
 export default function Landing() {
   const nav = useNavigate();
@@ -140,8 +141,9 @@ export default function Landing() {
           </div>
           <div className="lf-col">
             <h4>Developers</h4>
-            <a href="/docs" target="_blank" rel="noreferrer">Documentation</a>
-            <a href="/docs/api" target="_blank" rel="noreferrer">API</a>
+            <a href={DOCS_HOME_URL} target="_blank" rel="noreferrer">Documentation</a>
+            <a href={DOCS_API_URL} target="_blank" rel="noreferrer">API</a>
+
             <a href="https://github.com/Robibiruk" target="_blank" rel="noreferrer">GitHub</a>
           </div>
           <div className="lf-col">

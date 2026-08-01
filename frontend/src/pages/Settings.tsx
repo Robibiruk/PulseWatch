@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../auth";
 import * as api from "../api";
 import Icon from "../components/Icon";
 import BrandIcon from "../components/BrandIcon";
 import { Shell, Topbar } from "../components/Layout";
 import { IosSwitch } from "../components/IosSwitch";
+import { DOCS_HOME_URL } from "../docsSite";
 
 function Row({ icon, brand, title, desc, children, style }: any) {
   return (
@@ -25,27 +26,6 @@ function HealthDot({ status }: { status: string }) {
   const color = status === "operational" || status === "connected" || status === "running" || status === "healthy"
     ? "var(--success, #34C759)" : "var(--warn, #ff9f0a)";
   return <span style={{ width: 9, height: 9, borderRadius: 9, background: color, boxShadow: `0 0 8px ${color}`, display: "inline-block" }} />;
-}
-
-function ComingSoonModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card modal-sm" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
-          <h3>What&apos;s New</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body" style={{ textAlign: "center", padding: "18px 4px" }}>
-          <div style={{ fontSize: 38, marginBottom: 8 }}>🚀</div>
-          <h4 style={{ margin: "0 0 6px" }}>Coming soon</h4>
-          <p style={{ margin: 0, opacity: 0.72, fontSize: 13 }}>
-            Public status page themes, Slack workflows, API v2, keyboard shortcuts, and more.
-          </p>
-          <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={onClose}>Got it</button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function ShortcutsModal({ onClose }: { onClose: () => void }) {
@@ -86,7 +66,7 @@ export default function Settings() {
   const [paused, setPaused] = useState(!!user?.alerts_paused);
   const [link, setLink] = useState<string | null>(null);
   const [tgBusy, setTgBusy] = useState(false);
-  const [comingOpen, setComingOpen] = useState(false);
+
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Alert channels
@@ -490,10 +470,8 @@ export default function Settings() {
           <Row icon="settings" title="Tech stack" desc={(about?.tech_stack || ["React", "FastAPI", "PostgreSQL", "Neon"]).join(" · ")} />
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
             {about?.github && <a className="btn btn-ghost btn-sm" href={about.github} target="_blank" rel="noreferrer"><BrandIcon name="github" size={14} /> GitHub</a>}
-            <button className="btn btn-ghost btn-sm" onClick={() => nav("/docs")}><Icon name="link" size={14} /> Docs</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowShortcuts(true)}>
-              <Icon name="terminal" size={14} /> Shortcuts
-            </button>
+            <a className="btn btn-ghost btn-sm" href={DOCS_HOME_URL} target="_blank" rel="noreferrer"><Icon name="link" size={14} /> Docs</a>
+
           </div>
         </div>
 
@@ -506,7 +484,7 @@ export default function Settings() {
           <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <button className="btn btn-primary btn-sm" onClick={sendSupport}>Send message</button>
             {supportDone && <span style={{ fontSize: 12, color: "var(--primary)" }}>Sent ✓</span>}
-            {supportErr && !comingOpen && <span style={{ fontSize: 12, color: "#ff6b6b" }}>{supportErr}</span>}
+            {supportErr && <span style={{ fontSize: 12, color: "#ff6b6b" }}>{supportErr}</span>}
           </div>
           <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 14 }}>
             <h4 style={{ margin: "0 0 8px" }}>Feedback</h4>
@@ -525,7 +503,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {comingOpen && <ComingSoonModal onClose={() => setComingOpen(false)} />}
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
     </Shell>
   );

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./auth";
 import Landing from "./pages/Landing";
@@ -6,7 +7,6 @@ import Dashboard from "./pages/Dashboard";
 import MonitorDetail from "./pages/MonitorDetail";
 import Incidents from "./pages/Incidents";
 import Profile from "./pages/Profile";
-import Docs from "./pages/Docs";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import License from "./pages/License";
@@ -39,8 +39,6 @@ export default function App() {
       <Route path="/incidents" element={<RequireAuth><Incidents /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
       <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-      <Route path="/docs" element={<RequireAuth><Docs /></RequireAuth>} />
-      <Route path="/docs/:group/:id" element={<RequireAuth><Docs /></RequireAuth>} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/license" element={<License />} />

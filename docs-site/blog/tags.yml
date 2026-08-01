@@ -1,0 +1,29 @@
+engineering:
+  label: Engineering
+  permalink: /engineering
+  description: Core engineering posts about architecture, systems design, and reliability.
+
+product:
+  label: Product Updates
+  permalink: /product
+  description: Releases, improvements, and platform updates.
+
+guides:
+  label: Guides
+  permalink: /guides
+  description: Practical guides for monitors, alerts, status pages, and integrations.
+
+behind-the-scenes:
+  label: Behind the Scenes
+  permalink: /behind-the-scenes
+  description: How and why PulseWatch is built.
+
+monitoring:
+  label: Monitoring
+  permalink: /monitoring
+  description: Uptime monitoring concepts, patterns, and troubleshooting.
+
+open-source:
+  label: Open Source
+  permalink: /open-source
+  description: Community contributions, roadmap, and open-source releases.

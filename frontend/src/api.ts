@@ -1,5 +1,6 @@
 // API client. Point API_BASE at the Render backend (set via .env or default).
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:8000";
+export { API_BASE };
 
 class ApiError extends Error {
   status: number;

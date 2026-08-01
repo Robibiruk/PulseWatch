@@ -1,0 +1,35 @@
+---
+sidebar_position: 2
+date: 2026-07-29
+slug: understanding-http-status-codes
+title: "Understanding HTTP Status Codes for Monitoring"
+authors: [robel]
+tags: [guides, monitoring]
+---
+
+HTTP status codes are the simplest and most important signal in uptime monitoring. PulseWatch treats them as first-class truth, but interpreting them well requires a little context.
+
+## Common buckets
+
+- `2xx` — healthy response
+- `3xx` — redirect; may be expected or may indicate misconfiguration
+- `4xx` — client error; often a bad route, auth issue, or malformed request
+- `5xx` — server error; usually an outage or backend problem
+
+## Codes worth knowing for incident triage
+
+- `200 OK` — baseline success
+- `301/302` — permanent/temporary redirects
+- `400 Bad Request` — request validation failure
+- `401 Unauthorized` — missing or invalid authentication
+- `403 Forbidden` — authenticated but not authorized
+- `404 Not Found` — missing resource; often a deploy or routing issue
+- `429 Too Many Requests` — rate limiting; monitor cadence may need adjustment
+- `500 Internal Server Error` — generic backend failure
+- `502 Bad Gateway` — upstream unreachable
+- `503 Service Unavailable` — overloaded or maintenance mode
+- `504 Gateway Timeout` — upstream too slow
+
+## How PulseWatch uses this
+
+Status codes feed monitor state, retry decisions, incident creation, and alert routing. A single failure is never enough to declare downtime; PulseWatch retries before opening an incident.

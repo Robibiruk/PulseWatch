@@ -159,7 +159,7 @@ export default function MonitorDetail() {
             <span className={`pulse-dot ${st === "down" ? "down" : st === "paused" ? "purple" : ""}`} />
             {st === "up" ? "Operational" : st === "down" ? "Down" : "Paused"}
           </span>
-          <span className="badge">every {Math.round(m.interval / 60)}m</span>
+          <span className="badge">every {m.interval < 60 ? `${m.interval}s` : `${Math.round(m.interval / 60)}m`}</span>
         </div>
 
         {open && (

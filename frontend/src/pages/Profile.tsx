@@ -58,12 +58,12 @@ function KeyboardShortcutsModal({ onClose }: { onClose: () => void }) {
 /* ── Coming Soon modal ── */
 function ComingSoonModal({ onClose }: { onClose: () => void }) {
   return (
-    <Modal title="What's New" onClose={onClose}>
+    <Modal title="What&apos;s New" onClose={onClose}>
       <div style={{ textAlign: "center", padding: "18px 4px" }}>
         <div style={{ fontSize: 38, marginBottom: 8 }}>🚀</div>
         <h4 style={{ margin: "0 0 6px" }}>Coming soon</h4>
         <p style={{ margin: 0, opacity: 0.72, fontSize: 13 }}>
-          We're cooking the next batch of PulseWatch features — public status page themes, Slack workflows, API v2, and more.
+          We&apos;re cooking the next batch — public status page themes, Slack workflows, API v2, and more.
         </p>
         <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={onClose}>Got it</button>
       </div>
@@ -82,46 +82,75 @@ export default function PageProfile() {
     <Shell>
       <Topbar title="My Profile" sub={user?.email || ""} />
       <div className="content">
-        <div className="profile-hero glass-2">
-          <div className="avatar-lg" style={{ background: "var(--primary)", color: "#04121a", fontSize: 22, fontWeight: 700 }}>{initials}</div>
-          <div>
-            <h2 style={{ margin: "0 0 4px" }}>{name}</h2>
-            <p style={{ margin: 0, opacity: 0.7, fontSize: 13 }}>{user?.email} {user?.telegram_chat_id ? "· Telegram linked" : ""}</p>
+        <div className="profile-card">
+          <div className="pulse-trace">
+            <svg width="100%" height="20" viewBox="0 0 400 20" preserveAspectRatio="none">
+              <polyline points="0,10 130,10 145,10 155,2 165,18 175,10 190,10 400,10" fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" style={{ opacity: 0.7 }} />
+              <circle r="3" fill="var(--primary)">
+                <animateMotion dur="3.5s" repeatCount="indefinite" path="M0,10 L130,10 L145,10 L155,2 L165,18 L175,10 L190,10 L400,10" />
+              </circle>
+            </svg>
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setOpen("shortcuts")}>⌨️ Shortcuts</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setOpen("soon")}>✨ What's New</button>
+
+          <div className="profile-header">
+            <div className="avatar-wrap">
+              <div className="avatar">{initials}</div>
+              <div className="status-dot"></div>
+            </div>
+            <div className="identity">
+              <p className="name">{name}</p>
+              <p className="email">{user?.email}{user?.telegram_chat_id ? " · Telegram linked" : ""}
+              </p>
+            </div>
+          </div>
+
+          {user?.telegram_chat_id && (
+            <div className="telegram-badge">
+              <i className="ti ti-brand-telegram"></i> Telegram linked
+            </div>
+          )}
+
+          <div className="section">
+            <p className="section-label">Account</p>
+            <table className="field-table">
+              <tr><td><i className="ti ti-hash"></i>User ID</td><td className="mono">{user?.id ?? "—"}</td></tr>
+              <tr><td><i className="ti ti-user"></i>Display name</td><td>{user?.full_name || "—"}</td></tr>
+              <tr><td><i className="ti ti-mail"></i>Email</td><td>{user?.email || "—"}</td></tr>
+              <tr><td><i className="ti ti-calendar"></i>Created</td><td className="mono">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}</td></tr>
+            </table>
+          </div>
+
+          <div className="section">
+            <p className="section-label">Monitoring</p>
+            <table className="field-table">
+              <tr>
+                <td><i className="ti ti-activity"></i>Status</td>
+                <td><span className="status-active"><span className="status-bullet"></span>{user?.alerts_paused ? "Paused" : "Active"}</span></td>
+              </tr>
+              <tr>
+                <td><i className="ti ti-bell"></i>Channels</td>
+                <td><span className="pill">telegram</span><span className="pill">email</span></td>
+              </tr>
+              <tr>
+                <td><i className="ti ti-brand-telegram"></i>Telegram</td>
+                <td className={user?.telegram_chat_id ? "linked" : ""}><i className="ti ti-check"></i>{user?.telegram_chat_id ? "Linked" : "Not linked"}</td>
+              </tr>
+            </table>
           </div>
         </div>
 
-        <div className="profile-grid" style={{ marginTop: 18 }}>
-          <div className="set-card glass-2">
-            <h3>Account</h3>
-            <Row label="User ID" value={`#${user?.id ?? "—"}`} />
-            <Row label="Display name" value={user?.full_name || "—"} />
-            <Row label="Email" value={user?.email || "—"} />
-            <Row label="Created" value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : "—"} />
-          </div>
-          <div className="set-card glass-2">
-            <h3>Monitoring</h3>
-            <Row label="Status" value={user?.alerts_paused ? "Paused" : "Active"} />
-            <Row label="Channels" value={(user?.enabled_channels || "telegram,email").split(",").join(", ")} />
-            <Row label="Telegram" value={user?.telegram_chat_id ? "Linked" : "Not linked"} />
-          </div>
+        <div className="profile-actions" style={{ marginTop: 18, display: "flex", gap: 8 }}>
+          <button className="btn btn-primary btn-sm" onClick={() => setOpen("shortcuts")}>
+            <Icon name="keyboard" size={16} /> Shortcuts
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setOpen("soon")}>
+            <Icon name="sparkles" size={16} /> What&apos;s New
+          </button>
         </div>
       </div>
 
       {open === "shortcuts" && <KeyboardShortcutsModal onClose={() => setOpen(null)} />}
       {open === "soon" && <ComingSoonModal onClose={() => setOpen(null)} />}
     </Shell>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="set-row">
-      <div className="k">{label}</div>
-      <div className="v" style={{ fontWeight: 500 }}>{value}</div>
-    </div>
   );
 }

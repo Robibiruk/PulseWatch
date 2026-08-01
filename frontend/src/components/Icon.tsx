@@ -265,6 +265,11 @@ const paths: Record<string, React.ReactNode> = {
       <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path fill="currentColor" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4m2-2h-4"/><circle fill="currentColor" cx="4" cy="20" r="2"/></g>
     </>
   ),
+  "book": (
+    <>
+      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path fill="currentColor" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path fill="currentColor" d="M4 4.5A2.5 2.5 0 0 1 6.5 7H20v14H6.5A2.5 2.5 0 0 1 4 18.5v-14z"/></g>
+    </>
+  ),
 };
 
 export default function Icon({ name, size, className, style }: P & { name: keyof typeof paths | string }) {

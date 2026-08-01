@@ -1,0 +1,41 @@
+---
+sidebar_position: 4
+---
+
+# Alerts
+
+PulseWatch supports multiple notification channels so you can route incidents to the right place.
+
+## Telegram
+
+Instant push notifications with bot commands.
+
+## Email
+
+Detailed incident reports including monitor name, duration, cause, and timeline.
+
+## Discord
+
+Rich embeds posted to your server channel.
+
+## Slack
+
+Use Incoming Webhooks for direct channel alerts.
+
+## Generic Webhook
+
+POST a JSON payload to any endpoint.
+
+Example payload:
+
+```json
+{
+  "monitor": "Portfolio",
+  "status": "DOWN",
+  "code": 503
+}
+```
+
+## Test Notifications
+
+Send simulated incidents to verify configuration without affecting uptime statistics or triggering real incidents.

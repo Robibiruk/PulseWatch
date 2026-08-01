@@ -171,7 +171,7 @@ export default function Dashboard() {
                       </td>
                       <td style={{ textAlign: "right" }} className="cell-mono">{m.uptime_24h != null ? `${m.uptime_24h}%` : "—"}</td>
                       <td style={{ textAlign: "right" }} className="cell-mono">{m.avg_response_time != null ? `${Math.ceil(m.avg_response_time)}` : "—"}</td>
-                      <td style={{ textAlign: "right" }} className="cell-mono">{Math.round(m.interval / 60)}m</td>
+                      <td style={{ textAlign: "right" }} className="cell-mono">{m.interval < 60 ? `${m.interval}s` : `${Math.round(m.interval / 60)}m`}</td>
                       <td style={{ textAlign: "right" }}>
                         <div className="row-actions">
                           <button

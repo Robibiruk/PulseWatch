@@ -1,0 +1,49 @@
+---
+sidebar_position: 1
+---
+
+# Getting Started with PulseWatch
+
+Welcome to **PulseWatch**, a developer-first uptime monitoring platform designed to help you monitor websites, APIs, SSL certificates, and heartbeat jobs with real-time notifications and public status pages.
+
+## Quick Start
+
+1. **Sign up** — Create a free account at [pulsewatch.dev](https://pulsewatch.dev). No credit card required.
+2. **Add your first monitor** — From the Dashboard, click **Add Monitor**. Paste the URL of the service you want to track.
+3. **Choose a check interval** — Free tier defaults to 5-minute checks. Developer tier supports 1-minute intervals.
+4. **Enable notification channels** — Connect Telegram from Settings → Telegram → Connect. Enable email alerts in Alert Channels.
+5. **Save** — PulseWatch immediately begins monitoring and will alert you the moment something goes down.
+
+## Monitor Types
+
+PulseWatch supports five check types to cover every infrastructure layer.
+
+| Type | What it checks | Best for |
+|------|---------------|----------|
+| **Website** | HTTP status code, response time, redirects | Landing pages, blogs, docs |
+| **API** | JSON body shape, status code, response time | REST endpoints, GraphQL |
+| **TCP** | Port reachability, connection time | Databases, SSH, custom ports |
+| **Keyword** | Content must match expected text | Login pages, critical HTML elements |
+| **Heartbeat** | Expects a periodic ping from your server | Cron jobs, background workers, CI/CD |
+
+## Alert Channels
+
+- **Telegram** — Instant push notifications with incident details and action buttons. Use `/pause` and `/resume` to manage alerts from chat.
+- **Email** — Detailed incident reports with timeline and root-cause hints. Sends DOWN, RESOLVED, and periodic check-in digests.
+
+## Public Status Pages
+
+Generate a shareable status page at `/status/:ownerId` or `/status/slug/:slug`. No login required for visitors. Pick a theme from Settings → Status Pages.
+
+## What's Next
+
+- Set up **multiple monitors** for different services
+- Configure **alert channels** (Telegram + Email recommended)
+- Explore the **API Reference** for automation
+- Read the **Changelog** for latest updates
+
+## Need Help?
+
+- Check the **FAQ** page for common questions
+- Open an **issue** on [GitHub](https://github.com/Robibiruk/PulseWatch/issues)
+- Join the **Discussions** for community support

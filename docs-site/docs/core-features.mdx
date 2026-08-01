@@ -1,0 +1,60 @@
+---
+sidebar_position: 2
+---
+
+# Core Features
+
+These are the building blocks of PulseWatch. Each monitor type and notification channel is designed to be fast, reliable, and easy to test.
+
+## Website Monitoring
+
+PulseWatch performs scheduled HTTP requests and reports:
+
+- Availability
+- Status code
+- Response time
+- Downtime duration
+- Redirect chain
+- SSL validity and expiration
+
+## API Monitoring
+
+Designed for REST APIs with support for:
+
+- `GET`, `POST`, `PUT`, `DELETE`
+- Status code assertions
+- JSON body assertions
+- Response header validation
+
+Typical use cases include health endpoints, webhook receivers, and authentication gates.
+
+## SSL Monitoring
+
+Detects certificate issues before they become outages:
+
+- Expired certificates
+- Certificates expiring soon
+- Hostname mismatch
+- Invalid certificate chains
+
+Recommended alert schedule:
+
+- `30 days`
+- `14 days`
+- `7 days`
+- `1 day`
+
+## Heartbeat Monitoring
+
+Heartbeat monitors verify that scheduled jobs are running on time. Your job sends a request; PulseWatch expects it before timeout. If it misses the heartbeat, an incident is created.
+
+Perfect for:
+
+- Cron jobs
+- Backups
+- CI/CD pipelines
+- Scheduled scripts
+
+## Response Time Analytics
+
+Every successful request stores response time, status code, and timestamp. This data is used for average latency, performance trends, and historical graphs.

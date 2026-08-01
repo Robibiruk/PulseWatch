@@ -1,0 +1,28 @@
+---
+sidebar_position: 3
+date: 2026-07-29
+slug: how-pulsewatch-detects-downtime
+title: "How PulseWatch Detects Website Downtime"
+authors: [robel]
+tags: [engineering, monitoring]
+---
+
+PulseWatch is not polling for a banner or keyword. It is checking for a healthy request outcome, then applying retry and recovery semantics around that outcome.
+
+## Pipeline
+
+1. Scheduler queues checks based on configured interval
+2. Worker sends the HTTP request
+3. Response is recorded with status code, latency, and timestamp
+4. Failure triggers retry
+5. Confirmed failure opens an incident
+6. Monitoring continues
+7. Recovery detection closes the incident
+
+## Why retries matter
+
+False alerts erode trust faster than missed pages. Retries let PulseWatch separate flaky networks, DNS hiccups, and transient load from real downtime before notifying you.
+
+## Recovery notification
+
+Incidents do not wait for manual review. Once checks return to healthy, a recovery notification is sent and the incident timeline is updated.

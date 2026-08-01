@@ -10,6 +10,8 @@ backend/.env
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+docs-site/node_modules/
+docs-site/build/
 
 # misc
 .DS_Store
@@ -20,3 +22,4 @@ frontend/.env
 # Reference design exports (untracked design assets)
 stitch_pulsewatch_uptime_monitoring_platform/
 stitch_pulsewatch_uptime_monitoring_platform_V2/
+stitch_pulsewatch_docs_style/

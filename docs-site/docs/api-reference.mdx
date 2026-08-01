@@ -1,0 +1,60 @@
+---
+sidebar_position: 8
+---
+
+# API Reference
+
+Use the PulseWatch API to manage monitors, incidents, and status pages programmatically.
+
+## Authentication
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+## Endpoints
+
+### List monitors
+
+```http
+GET /api/v1/monitors
+```
+
+### Get monitor
+
+```http
+GET /api/v1/monitors/{id}
+```
+
+### Create monitor
+
+```http
+POST /api/v1/monitors
+```
+
+### Delete monitor
+
+```http
+DELETE /api/v1/monitors/{id}
+```
+
+### List incidents
+
+```http
+GET /api/v1/incidents
+```
+
+### Status pages
+
+```http
+GET /api/v1/status-pages
+```
+
+## Response format
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```

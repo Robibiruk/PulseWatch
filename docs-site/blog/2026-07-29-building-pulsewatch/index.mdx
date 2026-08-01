@@ -1,0 +1,36 @@
+---
+sidebar_position: 1
+date: 2026-07-29
+slug: building-pulsewatch
+title: "Building PulseWatch: Why I Created My Own Uptime Monitor"
+authors: [robel]
+tags: [engineering, open-source, behind-the-scenes]
+---
+
+Uptime monitoring is table stakes for anything you deploy, but the off-the-shelf options felt either too expensive, too closed, or too generic for how I actually run projects. I built PulseWatch to close that gap: simple enough for a personal site, precise enough for production APIs, and open enough to inspect or extend.
+
+## Motivation
+
+Most monitoring tools assume an enterprise workflow. I wanted one that respected smaller stacks and individual maintainers: FastAPI backend, PostgreSQL, straightforward webhook/notification paths, and a UI that feels like a native product rather than a bundled dashboard.
+
+## Goals
+
+- Clear monitor lifecycle: create, check, retry, alert, recover
+- Multiple notification channels without brittle integrations
+- Public status pages that feel intentional, not templated
+- Developer-friendly docs and API surface
+
+## Architecture
+
+The core loop stays intentionally small:
+
+- Scheduler decides when each monitor should be checked
+- Worker executes the request, stores results, and emits alerts
+- Database records monitor state, check history, and incident timelines
+- Notification service formats messages for Telegram, email, Discord, Slack, and webhooks
+
+## Lessons learned
+
+- Retries matter more than raw frequency for reducing false positives
+- Status page freshness and caching behavior deserve explicit design attention
+- Auth and notification flows should be testable without creating real incidents
