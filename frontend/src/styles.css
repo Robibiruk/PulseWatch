@@ -791,3 +791,150 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: none;
   border-radius: 0; padding: 16px 0; margin-bottom: 0;
 }
 .status-page[data-theme="minimal"] .pub-row:last-of-type { border-bottom: 1px solid var(--outline); }
+
+/* ═══ Profile — the account read as a monitored service ═══ */
+.prf-card {
+  max-width: 640px; margin: 0 auto;
+  background: var(--glass-2); border: var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; position: relative;
+}
+
+/* ── Signal trace header ── */
+.prf-trace {
+  position: relative; height: 84px; padding: 0;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0) 70%),
+    var(--surface-container);
+  border-bottom: var(--border);
+}
+.prf-trace-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.prf-track { fill: none; stroke: rgba(250,250,250,0.10); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.prf-tracer {
+  fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 16 560;
+  animation: prf-dash 2.4s linear infinite;
+}
+.prf-node { fill: var(--primary); }
+@keyframes prf-dash {
+  to { stroke-dashoffset: -576; }
+}
+.prf-trace-meta {
+  position: absolute; top: 12px; left: 16px; right: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  pointer-events: none; z-index: 2;
+}
+.prf-trace-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 600 10px "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.22em; color: var(--on-surface-variant);
+}
+.prf-live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  animation: prf-beacon 2s ease-in-out infinite;
+}
+.prf-live-dot.off { background: var(--warn); animation: none; }
+@keyframes prf-beacon {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+.prf-trace-state {
+  font: 600 10px "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.22em; color: var(--green);
+}
+.prf-trace-state:empty { color: var(--warn); }
+
+/* ── Identity ── */
+.prf-body { padding: 22px 24px 6px; }
+.prf-head { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.prf-avatar {
+  width: 58px; height: 58px; flex: none;
+  border: 1px solid var(--outline-strong); border-radius: 14px;
+  background: var(--surface-container-highest); color: var(--primary);
+  display: grid; place-items: center;
+  font: 700 20px "Geist", sans-serif; letter-spacing: 0.02em;
+}
+.prf-ident { min-width: 0; }
+.prf-name-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.prf-name { margin: 0; font-size: 21px; font-weight: 650; letter-spacing: -0.01em; color: var(--on-surface); }
+.prf-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 11px "Geist", sans-serif; color: var(--green);
+  background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.25);
+  padding: 3px 9px; border-radius: 999px;
+}
+.prf-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.prf-status.off { color: var(--warn); background: rgba(251, 191, 36, 0.08); border-color: rgba(251, 191, 36, 0.25); }
+.prf-email { margin-top: 4px; font-size: 13px; color: var(--on-surface-variant); }
+.prf-meta { margin-top: 6px; font: 400 12px "JetBrains Mono", ui-monospace, monospace; color: var(--on-surface-muted); }
+.prf-meta-sep { margin: 0 7px; opacity: 0.5; }
+
+/* ── Telemetry strip ── */
+.prf-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--outline); gap: 1px;
+  border: var(--border); border-radius: var(--radius); overflow: hidden;
+  margin-bottom: 20px;
+}
+.prf-stat { background: var(--surface); padding: 12px 14px 13px; }
+.prf-stat-label {
+  display: flex; align-items: center; gap: 6px;
+  font: 500 10px "Geist", sans-serif; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--on-surface-muted);
+}
+.prf-stat-label svg { opacity: 0.7; }
+.prf-stat-value {
+  margin-top: 7px; font: 650 21px "JetBrains Mono", ui-monospace, monospace; color: var(--on-surface);
+}
+.prf-stat-value.ok { color: var(--green); }
+.prf-stat-value.bad { color: var(--red); }
+.prf-stat-value.warn { color: var(--warn); }
+
+/* ── Spec sections ── */
+.prf-section { padding: 16px 0 18px; border-top: var(--border); }
+.prf-section-label {
+  margin: 0 0 12px; display: flex; align-items: center; gap: 7px;
+  font: 600 11px "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-surface-variant);
+}
+.prf-section-label svg { opacity: 0.7; }
+.prf-rows { display: flex; flex-direction: column; }
+.prf-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 9px 0;
+}
+.prf-row + .prf-row { border-top: 1px solid rgba(255,255,255,0.045); }
+.prf-k { font-size: 13px; color: var(--on-surface-variant); }
+.prf-v { font-size: 13px; color: var(--on-surface); text-align: right; }
+.prf-v.mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px; }
+
+/* ── Channel chips ── */
+.prf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.prf-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 11px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--outline);
+  font-size: 12.5px; color: var(--on-surface-muted);
+}
+.prf-chip.on { border-color: rgba(255,255,255,0.16); color: var(--on-surface); }
+.prf-chip-name { font-weight: 550; }
+.prf-chip-note { font: 400 11px "JetBrains Mono", ui-monospace, monospace; color: var(--on-surface-muted); }
+.prf-chip.on .prf-chip-note { color: var(--green); }
+
+/* ── Actions ── */
+.prf-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 16px 24px 20px; border-top: var(--border);
+  background: var(--surface-container);
+}
+
+@media (max-width: 600px) {
+  .prf-stats { grid-template-columns: repeat(2, 1fr); }
+  .prf-body { padding: 18px 18px 2px; }
+  .prf-actions { padding: 14px 18px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prf-tracer { animation: none; stroke-dasharray: none; }
+  .prf-live-dot { animation: none; }
+}
