@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#000"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="400" y1="180" x2="800" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="blur1"><feGaussianBlur stdDeviation="40"/></filter>
+    <clipPath id="card"><rect width="480" height="300" rx="16"/></clipPath>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <circle cx="500" cy="300" r="200" fill="url(#glow)" filter="url(#blur1)"/>
+  <circle cx="700" cy="280" r="160" fill="#34d399" fill-opacity="0.04" filter="url(#blur1)"/>
+
+  <!-- Pulse line -->
+  <g transform="translate(60, 240)">
+    <path d="M0 60 H320 L350 60 L370 20 L395 100 L420 60 H500 L530 60 L548 25 L570 95 L590 60 H700 L730 60 L750 15 L775 105 L800 60 H900 L930 60 L950 20 L975 100 L1000 60 H1100" stroke="#34d399" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <circle cx="500" cy="60" r="5" fill="#34d399">
+      <animate attributeName="cx" from="0" to="1100" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0.3;1;1" dur="4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Dashboard card preview -->
+  <g transform="translate(620, 80)" clip-path="url(#card)">
+    <rect width="480" height="300" fill="#0e0e0e" rx="16"/>
+    <rect width="480" height="48" fill="#141313"/>
+    <text x="20" y="30" fill="#fafafa" font-family="system-ui" font-size="14" font-weight="600">PulseWatch Dashboard</text>
+    <g transform="translate(20, 68)">
+      <rect width="220" height="90" rx="12" fill="#0a0a0a" stroke="rgba(255,255,255,0.08)"/>
+      <text x="16" y="28" fill="#888" font-family="system-ui" font-size="11">TOTAL MONITORS</text>
+      <text x="16" y="62" fill="#fafafa" font-family="'JetBrains Mono',monospace" font-size="28" font-weight="700">12</text>
+      <text x="16" y="80" fill="#888" font-family="system-ui" font-size="11">2 paused</text>
+    </g>
+    <g transform="translate(248, 68)">
+      <rect width="220" height="90" rx="12" fill="#0a0a0a" stroke="rgba(255,255,255,0.08)"/>
+      <text x="16" y="28" fill="#888" font-family="system-ui" font-size="11">UPTIME 24H</text>
+      <text x="16" y="62" fill="#34d399" font-family="'JetBrains Mono',monospace" font-size="28" font-weight="700">99.97%</text>
+      <text x="16" y="80" fill="#888" font-family="system-ui" font-size="11">Across all services</text>
+    </g>
+    <g transform="translate(20, 178)">
+      <rect width="440" height="100" rx="12" fill="#0a0a0a" stroke="rgba(255,255,255,0.08)"/>
+      <text x="16" y="24" fill="#fafafa" font-family="system-ui" font-size="12" font-weight="600">Monitored services</text>
+      <rect x="16" y="38" width="408" height="1" fill="rgba(255,255,255,0.06)"/>
+      <circle cx="32" cy="58" r="4" fill="#34d399"/>
+      <text x="44" y="62" fill="#fafafa" font-family="system-ui" font-size="12">api.example.com</text>
+      <text x="320" y="62" fill="#34d399" font-family="system-ui" font-size="12">Operational</text>
+      <text x="410" y="62" fill="#888" font-family="'JetBrains Mono',monospace" font-size="11">142ms</text>
+      <circle cx="32" cy="84" r="4" fill="#f87171"/>
+      <text x="44" y="88" fill="#fafafa" font-family="system-ui" font-size="12">status.example.com</text>
+      <text x="310" y="88" fill="#f87171" font-family="system-ui" font-size="12">Down</text>
+      <text x="400" y="88" fill="#888" font-family="'JetBrains Mono',monospace" font-size="11">HTTP 503</text>
+    </g>
+  </g>
+
+  <!-- Title text -->
+  <text x="60" y="100" fill="#fafafa" font-family="system-ui" font-size="48" font-weight="800" letter-spacing="-1.5">PulseWatch</text>
+  <text x="60" y="140" fill="#888" font-family="system-ui" font-size="16">Self-hosted uptime monitoring with Telegram alerts</text>
+  <text x="60" y="165" fill="#888" font-family="system-ui" font-size="16">and AI-explained incidents.</text>
+
+  <g transform="translate(60, 380)">
+    <rect width="140" height="38" rx="10" fill="#fafafa"/>
+    <text x="70" y="24" fill="#000" font-family="system-ui" font-size="13" font-weight="700" text-anchor="middle">Get Started</text>
+    <rect x="156" width="140" height="38" rx="10" fill="none" stroke="rgba(255,255,255,0.2)"/>
+    <text x="226" y="24" fill="#fafafa" font-family="system-ui" font-size="13" font-weight="600" text-anchor="middle">View on GitHub</text>
+  </g>
+
+  <!-- Tech badges -->
+  <g transform="translate(60, 440)">
+    <rect width="82" height="24" rx="6" fill="#3178c6" fill-opacity="0.15" stroke="#3178c6" stroke-opacity="0.3"/>
+    <text x="41" y="16" fill="#79b8ff" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">FastAPI</text>
+    <rect x="94" width="78" height="24" rx="6" fill="#61dafb" fill-opacity="0.12" stroke="#61dafb" stroke-opacity="0.3"/>
+    <text x="133" y="16" fill="#61dafb" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">React</text>
+    <rect x="184" width="96" height="24" rx="6" fill="#41b883" fill-opacity="0.12" stroke="#41b883" stroke-opacity="0.3"/>
+    <text x="232" y="16" fill="#41b883" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">TypeScript</text>
+    <rect x="292" width="90" height="24" rx="6" fill="#22d3ee" fill-opacity="0.12" stroke="#22d3ee" stroke-opacity="0.3"/>
+    <text x="337" y="16" fill="#22d3ee" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">Neon/Postgres</text>
+    <rect x="394" width="74" height="24" rx="6" fill="#34d399" fill-opacity="0.12" stroke="#34d399" stroke-opacity="0.3"/>
+    <text x="431" y="16" fill="#34d399" font-family="system-ui" font-size="10" font-weight="600" text-anchor="middle">Free</text>
+  </g>
+</svg>
