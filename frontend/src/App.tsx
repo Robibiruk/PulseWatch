@@ -12,6 +12,7 @@ import Terms from "./pages/Terms";
 import License from "./pages/License";
 import Settings from "./pages/Settings";
 import PublicStatus from "./pages/PublicStatus";
+import SystemStatus from "./pages/SystemStatus";
 import Loader from "./components/Loader";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -32,6 +33,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/status" element={<SystemStatus />} />
       <Route path="/status/:ownerId" element={<PublicStatus />} />
       <Route path="/status/slug/:slug" element={<PublicStatus />} />
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />

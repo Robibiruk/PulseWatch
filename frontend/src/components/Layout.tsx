@@ -162,7 +162,7 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
         <div className="sidebar-foot">
           <span>PulseWatch</span>
           <span>v2.4.0</span>
-          <a href={`${API_BASE}/status/health`} target="_blank" rel="noreferrer">System Status</a>
+          <Link to="/status">System Status</Link>
         </div>
       </aside>
 
