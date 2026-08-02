@@ -48,6 +48,9 @@ export const me = () => request<any>("/auth/me");
 // ── Telegram ──
 export const tgLink = () => request<any>("/auth/telegram/link");
 export const tgUnlink = () => request<any>("/auth/telegram/unlink", { method: "POST" });
+export const setPlan = (plan: string) =>
+  request<any>("/auth/plan", { method: "POST", body: JSON.stringify({ plan }) });
+export const checkOnboarding = () => request<any>("/auth/onboarding");
 export const tgPause = () => request<any>("/auth/telegram/pause", { method: "POST" });
 export const tgResume = () => request<any>("/auth/telegram/resume", { method: "POST" });
 export const tgChannels = () => request<any>("/auth/telegram/channels");

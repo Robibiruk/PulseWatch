@@ -80,6 +80,23 @@ async def me(current: User = Depends(get_current_user)):
     return current
 
 
+@router.get("/onboarding")
+async def check_onboarding(current: User = Depends(get_current_user)):
+    """Returns whether the user needs to complete plan selection (first login)."""
+    return {"needs_onboarding": current.plan == "free" and not current.telegram_chat_id}
+
+
+@router.post("/plan")
+async def set_plan(body: dict, current: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Set user plan (called by bot after payment, or directly for free tier)."""
+    plan = body.get("plan", "free")
+    if plan not in ("free", "pro", "team"):
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    current.plan = plan
+    await db.commit()
+    return {"ok": True, "plan": plan}
+
+
 # ── GitHub OAuth ────────────────────────────────────────────────────────
 GITHUB_AUTHORIZE = "https://github.com/login/oauth/authorize"
 GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"

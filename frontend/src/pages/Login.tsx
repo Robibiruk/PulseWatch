@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import * as api from "../api";
 import BrandIcon from "../components/BrandIcon";
+import PlanSelection from "../components/PlanSelection";
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:8000";
 
@@ -16,14 +17,22 @@ export default function Login() {
   const [name, setName] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPlan, setShowPlan] = useState(false);
 
   // Handle GitHub OAuth callback — token arrives as ?token=... in the URL
   useEffect(() => {
     const token = params.get("token");
     if (token) {
       localStorage.setItem("pw_token", token);
-      // Fetch user then redirect to dashboard
-      api.me().then(() => nav("/dashboard", { replace: true })).catch(() => {});
+      // Fetch user, then check if onboarding needed
+      api.me().then(async (u) => {
+        const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false }));
+        if (onb.needs_onboarding) {
+          setShowPlan(true);
+        } else {
+          nav("/dashboard", { replace: true });
+        }
+      }).catch(() => {});
     }
     const authErr = params.get("error");
     if (authErr) setErr("GitHub authentication failed. Try again or use email.");
@@ -35,7 +44,13 @@ export default function Login() {
     try {
       if (mode === "login") await login(email, password);
       else await register(email, password, name);
-      nav("/");
+      // Check if onboarding needed
+      const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false }));
+      if (onb.needs_onboarding) {
+        setShowPlan(true);
+      } else {
+        nav("/dashboard", { replace: true });
+      }
     } catch (e: any) {
       setErr(e.message || "Something went wrong");
     } finally { setBusy(false); }
@@ -92,6 +107,8 @@ export default function Login() {
         <span className="status-pill"><span className="pulse-dot" /> All Systems Operational</span>
         <span className="mono" style={{ color: "var(--on-surface-muted)", fontSize: 11 }}>v2.4.0-stable</span>
       </div>
+
+      {showPlan && <PlanSelection onComplete={() => setShowPlan(false)} />}
     </div>
   );
 }
