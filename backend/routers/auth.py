@@ -93,7 +93,7 @@ async def github_login():
         raise HTTPException(status_code=503, detail="GitHub OAuth is not configured on this server")
     params = {
         "client_id": settings.github_client_id,
-        "redirect_uri": f"{settings.public_base_url}/auth/github/callback",
+        "redirect_uri": f"{settings.public_base_url_clean}/auth/github/callback",
         "scope": "user:email",
         "state": "pulsewatch",
     }
@@ -122,7 +122,7 @@ async def github_callback(code: str = "", state: str = "", db: AsyncSession = De
         token_data = token_resp.json()
         access_token = token_data.get("access_token")
         if not access_token:
-            return RedirectResponse(f"{settings.frontend_url}/login?error=github_auth_failed")
+            return RedirectResponse(f"{settings.frontend_url.rstrip('/')}/login?error=github_auth_failed")
 
         # Fetch GitHub user info
         user_resp = await client.get(
@@ -160,4 +160,4 @@ async def github_callback(code: str = "", state: str = "", db: AsyncSession = De
         await db.refresh(user)
 
     jwt_token = create_access_token(str(user.id))
-    return RedirectResponse(f"{settings.frontend_url}/login?token={jwt_token}")
+    return RedirectResponse(f"{settings.frontend_url.rstrip('/')}/login?token={jwt_token}")

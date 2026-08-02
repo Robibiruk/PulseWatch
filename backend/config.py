@@ -62,5 +62,10 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
+    @property
+    def public_base_url_clean(self) -> str:
+        """public_base_url with trailing slashes stripped (avoids double-slash redirect URIs)."""
+        return self.public_base_url.rstrip("/")
+
 
 settings = Settings()
