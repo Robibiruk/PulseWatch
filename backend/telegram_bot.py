@@ -180,15 +180,54 @@ async def _plan_text(chat_id: str) -> str:
         if not user:
             return _not_linked()
         plan = user.plan or "free"
-    plans = {
-        "free": "Free — 10 monitors, 5-min checks",
-        "pro": "Pro — 100 monitors, 1-min checks, status pages, SSL",
-        "team": "Team — unlimited monitors, 30-sec checks, team accounts",
-    }
-    current = plans.get(plan, "Unknown")
-    return (f"📊 Current plan: {plan.title()}\n{current}\n\n"
-            f"To upgrade, visit the dashboard:\nhttps://pulsewatch-monitor.vercel.app/settings\n\n"
-            f"Or send /upgrade_pro or /upgrade_team to pay with Telegram Stars.")
+
+    if plan == "free":
+        return (
+            "📊 *Your Plan: Free*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🔹 10 monitors\n"
+            "🔹 5-minute checks\n"
+            "🔹 Telegram alerts\n"
+            "🔹 Basic history\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🔓 *Unlock more power:*\n\n"
+            "⚡ *Pro* — 50 Stars/mo\n"
+            "   100 monitors · 1-min checks · Status pages · SSL · AI explanations\n"
+            "   /upgrade_pro\n\n"
+            "🚀 *Team* — 150 Stars/mo\n"
+            "   Unlimited monitors · 30-sec checks · Team accounts · API access\n"
+            "   /upgrade_team\n\n"
+            "💡 Pay securely with Telegram Stars — no card needed."
+        )
+    elif plan == "pro":
+        return (
+            "📊 *Your Plan: Pro* ⚡\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🔹 100 monitors\n"
+            "🔹 1-minute checks\n"
+            "🔹 Status pages\n"
+            "🔹 SSL monitoring\n"
+            "🔹 AI explanations\n"
+            "🔹 Multi-channel alerts\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🚀 *Want more?*\n"
+            "   *Team* — 150 Stars/mo\n"
+            "   Unlimited monitors · 30-sec checks · Team accounts · API access\n"
+            "   /upgrade_team"
+        )
+    else:
+        return (
+            "📊 *Your Plan: Team* 🚀\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "🔹 Unlimited monitors\n"
+            "🔹 30-second checks\n"
+            "🔹 Status pages + SSL\n"
+            "🔹 AI explanations\n"
+            "🔹 Team accounts\n"
+            "🔹 API access · Priority support\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "✅ You're on the top tier! Everything is unlocked."
+        )
 
 
 async def _status_text(chat_id: str) -> str:

@@ -7,8 +7,6 @@ import { DOCS_API_URL, DOCS_HOME_URL } from "../docsSite";
 export default function Landing() {
   const nav = useNavigate();
   const { user } = useAuth();
-  const [demo, setDemo] = useState(false);
-
   const go = () => nav(user ? "/" : "/login");
 
   return (
@@ -35,7 +33,6 @@ export default function Landing() {
         </p>
         <div className="land-cta">
           <button className="btn" onClick={go}>Start Monitoring →</button>
-          <a href="/status/1" className="btn btn-ghost">View Live Demo</a>
         </div>
 
         <div className="land-stats">
