@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as api from "../api";
 import Icon from "../components/Icon";
-import BrandIcon from "../components/BrandIcon";
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:8000";
 
@@ -43,8 +42,6 @@ export default function PlanSelection({ onComplete, defaultPlan, trialExpired }:
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<string | null>(defaultPlan || null);
-  const [telegramLinked, setTelegramLinked] = useState(false);
-  const [link, setLink] = useState<string | null>(null);
 
   const choosePlan = async (planId: string) => {
     if (planId === "free") {
@@ -62,92 +59,16 @@ export default function PlanSelection({ onComplete, defaultPlan, trialExpired }:
       return;
     }
 
-    // Paid plan — check Telegram link status first
+    // Paid plan — open Telegram directly (one click)
     setSelected(planId);
     try {
       const status = await api.tgLink();
-      if (status.linked) {
-        setTelegramLinked(true);
-      } else {
-        setTelegramLinked(false);
-        setLink(status.link);
-        // Open Telegram for linking
-        const u = status.bot_username;
-        const tok = status.token;
-        if (u && tok) {
-          window.open(`tg://resolve?domain=${u}&start=plan_${planId}`, "_blank");
-        } else if (status.link) {
-          window.open(status.link, "_blank");
-        }
-      }
+      const bot = status.bot_username || "Pulse_WatchBot";
+      // Open Telegram with plan param — bot handles linking + payment
+      window.location.href = `https://t.me/${bot}?start=plan_${planId}`;
     } catch {
-      // Telegram not configured — just set the plan directly
-      await api.setPlan(planId);
-      onComplete();
-      nav("/dashboard", { replace: true });
-    }
-  };
-
-  const checkTelegramAndPay = async () => {
-    setBusy(true);
-    try {
-      const status = await api.tgLink();
-      if (status.linked) {
-        // User linked — send them to bot to pay
-        window.open(`https://t.me/${status.bot_username}?start=plan_${selected}`, "_blank");
-        // Poll for plan upgrade
-        let tries = 0;
-        const iv = setInterval(async () => {
-          tries++;
-          try {
-            const me = await api.me();
-            if (me.plan === selected) {
-              clearInterval(iv);
-              onComplete();
-              nav("/dashboard", { replace: true });
-            }
-          } catch { /* ignore */ }
-          if (tries >= 20) clearInterval(iv);
-        }, 3000);
-      } else {
-        // Need to link first
-        setLink(status.link);
-        const u = status.bot_username;
-        const tok = status.token;
-        if (u && tok) {
-          window.open(`tg://resolve?domain=${u}&start=plan_${selected}`, "_blank");
-        } else if (status.link) {
-          window.open(status.link, "_blank");
-        }
-        // Poll for link + payment
-        let tries = 0;
-        const iv = setInterval(async () => {
-          tries++;
-          try {
-            const st = await api.tgLink();
-            if (st.linked) {
-              setTelegramLinked(true);
-              setLink(null);
-              // Now send them to pay
-              window.open(`https://t.me/${st.bot_username}?start=plan_${selected}`, "_blank");
-            }
-            const me = await api.me();
-            if (me.plan === selected) {
-              clearInterval(iv);
-              onComplete();
-              nav("/dashboard", { replace: true });
-            }
-          } catch { /* ignore */ }
-          if (tries >= 30) clearInterval(iv);
-        }, 3000);
-      }
-    } catch (e: any) {
-      // Fallback: just set plan
-      await api.setPlan(selected!);
-      onComplete();
-      nav("/dashboard", { replace: true });
-    } finally {
-      setBusy(false);
+      // Fallback — try direct Telegram link
+      window.location.href = `https://t.me/Pulse_WatchBot?start=plan_${planId}`;
     }
   };
 
@@ -217,23 +138,6 @@ export default function PlanSelection({ onComplete, defaultPlan, trialExpired }:
               </div>
             ))}
           </div>
-
-          {selected && selected !== "free" && (
-            <div style={{ marginTop: 16, textAlign: "center" }}>
-              <button
-                className="btn btn-primary"
-                onClick={checkTelegramAndPay}
-                disabled={busy}
-                style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-              >
-                <BrandIcon name="telegram" size={16} />
-                {busy ? "Connecting..." : `Pay with Telegram Stars`}
-              </button>
-              <p style={{ fontSize: 11, color: "var(--on-surface-muted)", marginTop: 8 }}>
-                You'll be redirected to Telegram to complete the payment securely.
-              </p>
-            </div>
-          )}
 
           <div style={{ textAlign: "center", marginTop: 14 }}>
             <button
