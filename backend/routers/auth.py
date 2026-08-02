@@ -1,11 +1,15 @@
 from datetime import timezone
 from fastapi import BackgroundTasks
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from database import get_db
 from models import User
 from auth import (
@@ -74,3 +78,86 @@ async def _send_login_email(email: str, name: str, ip: str | None) -> None:
 @router.get("/me", response_model=UserOut)
 async def me(current: User = Depends(get_current_user)):
     return current
+
+
+# ── GitHub OAuth ────────────────────────────────────────────────────────
+GITHUB_AUTHORIZE = "https://github.com/login/oauth/authorize"
+GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
+GITHUB_USER_URL = "https://api.github.com/user"
+
+
+@router.get("/github/login")
+async def github_login():
+    """Redirect the user to GitHub's OAuth consent screen."""
+    if not settings.github_client_id:
+        raise HTTPException(status_code=503, detail="GitHub OAuth is not configured on this server")
+    params = {
+        "client_id": settings.github_client_id,
+        "redirect_uri": f"{settings.public_base_url}/auth/github/callback",
+        "scope": "user:email",
+        "state": "pulsewatch",
+    }
+    return RedirectResponse(f"{GITHUB_AUTHORIZE}?{urlencode(params)}")
+
+
+@router.get("/github/callback")
+async def github_callback(code: str = "", state: str = "", db: AsyncSession = Depends(get_db)):
+    """Exchange the code for a token, find/create the user, redirect to the frontend with a JWT."""
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing authorization code from GitHub")
+    if not settings.github_client_id or not settings.github_client_secret:
+        raise HTTPException(status_code=503, detail="GitHub OAuth is not configured on this server")
+
+    # Exchange authorization code for access token
+    async with httpx.AsyncClient(timeout=15) as client:
+        token_resp = await client.post(
+            GITHUB_TOKEN_URL,
+            data={
+                "client_id": settings.github_client_id,
+                "client_secret": settings.github_client_secret,
+                "code": code,
+            },
+            headers={"Accept": "application/json"},
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            return RedirectResponse(f"{settings.frontend_url}/login?error=github_auth_failed")
+
+        # Fetch GitHub user info
+        user_resp = await client.get(
+            GITHUB_USER_URL,
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+        )
+        gh_user = user_resp.json()
+        email = gh_user.get("email")
+        if not email:
+            # Primary email may be private — fetch from /user/emails
+            emails_resp = await client.get(
+                "https://api.github.com/user/emails",
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+            )
+            for e in emails_resp.json():
+                if e.get("primary"):
+                    email = e["email"]
+                    break
+            if not email:
+                email = f"{gh_user.get('login', 'user')}@github.local"
+
+    name = gh_user.get("name") or gh_user.get("login") or email.split("@")[0]
+    avatar = gh_user.get("avatar_url") or ""
+
+    # Find or create the user
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if user is None:
+        user = User(
+            email=email,
+            full_name=name,
+            hashed_password=hash_password(os.urandom(16).hex()),  # no password for OAuth users
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    jwt_token = create_access_token(str(user.id))
+    return RedirectResponse(f"{settings.frontend_url}/login?token={jwt_token}")

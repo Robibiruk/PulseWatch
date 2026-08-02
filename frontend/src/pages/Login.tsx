@@ -1,18 +1,33 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
-import Icon from "../components/Icon";
+import * as api from "../api";
 import BrandIcon from "../components/BrandIcon";
 
+const API_BASE = (import.meta.env.VITE_API_BASE as string) || "http://localhost:8000";
+
 export default function Login() {
-  const { login, register } = useAuth();
+  const { login, register, user } = useAuth();
   const nav = useNavigate();
+  const [params] = useSearchParams();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Handle GitHub OAuth callback — token arrives as ?token=... in the URL
+  useEffect(() => {
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("pw_token", token);
+      // Fetch user then redirect to dashboard
+      api.me().then(() => nav("/dashboard", { replace: true })).catch(() => {});
+    }
+    const authErr = params.get("error");
+    if (authErr) setErr("GitHub authentication failed. Try again or use email.");
+  }, [params, nav]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +56,7 @@ export default function Login() {
           Infrastructure monitoring at the speed of light.
         </p>
 
-        <button type="button" className="github-btn" onClick={() => setErr("GitHub OAuth coming soon — use email for now.")}>
+        <button type="button" className="github-btn" onClick={() => window.location.href = `${API_BASE}/auth/github/login`}>
         <BrandIcon name="github" size={18} /> Continue with GitHub
         </button>
         <div className="divider">or email</div>
