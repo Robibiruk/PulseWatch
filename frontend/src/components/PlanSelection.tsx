@@ -39,10 +39,10 @@ const PLANS = [
   },
 ];
 
-export default function PlanSelection({ onComplete }: { onComplete: () => void }) {
+export default function PlanSelection({ onComplete, defaultPlan, trialExpired }: { onComplete: () => void; defaultPlan?: string; trialExpired?: boolean }) {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(defaultPlan || null);
   const [telegramLinked, setTelegramLinked] = useState(false);
   const [link, setLink] = useState<string | null>(null);
 
@@ -156,9 +156,11 @@ export default function PlanSelection({ onComplete }: { onComplete: () => void }
       <div className="modal-card modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <div>
-            <h3>Choose your plan</h3>
+            <h3>{trialExpired ? "Your trial has ended" : "Choose your plan"}</h3>
             <p className="muted" style={{ fontSize: 13, margin: "4px 0 0" }}>
-              Start free, upgrade anytime. Pay with Telegram Stars.
+              {trialExpired
+                ? "Upgrade to keep monitoring. Pay with Telegram Stars."
+                : "Start free, upgrade anytime. Pay with Telegram Stars."}
             </p>
           </div>
         </div>

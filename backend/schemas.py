@@ -18,6 +18,7 @@ class UserOut(BaseModel):
     is_active: bool
     created_at: datetime
     plan: str = "free"
+    trial_ends_at: datetime | None = None
     alerts_paused: bool = False
     telegram_chat_id: str | None = None
     enabled_channels: str = "telegram,email"

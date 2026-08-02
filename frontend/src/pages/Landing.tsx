@@ -134,7 +134,7 @@ export default function Landing() {
               <li><Icon name="check" /> API access</li>
               <li><Icon name="check" /> Priority support</li>
             </ul>
-            <a href="https://t.me/PulseWatchBot?start=plan_team" className="btn btn-ghost" style={{ width: "100%", textAlign: "center" }}>Get Team</a>
+            <a href="/login?plan=team" className="btn btn-ghost" style={{ width: "100%", textAlign: "center" }}>Get Team</a>
           </div>
         </div>
       </div>

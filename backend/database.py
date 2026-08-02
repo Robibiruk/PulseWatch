@@ -73,6 +73,7 @@ async def _migrate_columns(conn) -> None:
         ("last_checkin_at", "TIMESTAMP"),
         ("status_slug", "VARCHAR(64)"),
         ("plan", "VARCHAR(32) NOT NULL DEFAULT 'free'"),
+        ("trial_ends_at", "TIMESTAMP"),
     ]
     for col, coltype in user_cols:
         await conn.run_sync(_add_missing, "users", col, coltype)

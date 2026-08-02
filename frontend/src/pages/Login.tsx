@@ -18,16 +18,21 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
+  const [planParam, setPlanParam] = useState<string | undefined>(undefined);
+  const [trialExpired, setTrialExpired] = useState(false);
 
   // Handle GitHub OAuth callback — token arrives as ?token=... in the URL
   useEffect(() => {
     const token = params.get("token");
+    const planFromUrl = params.get("plan") || undefined;
+    if (planFromUrl) setPlanParam(planFromUrl);
     if (token) {
       localStorage.setItem("pw_token", token);
-      // Fetch user, then check if onboarding needed
-      api.me().then(async (u) => {
-        const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false }));
-        if (onb.needs_onboarding) {
+      api.me().then(async () => {
+        const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false, trial_expired: false }));
+        if (onb.needs_onboarding || onb.trial_expired) {
+          setTrialExpired(onb.trial_expired);
+          setPlanParam(planFromUrl || (onb.trial_expired ? "pro" : undefined));
           setShowPlan(true);
         } else {
           nav("/dashboard", { replace: true });
@@ -44,9 +49,10 @@ export default function Login() {
     try {
       if (mode === "login") await login(email, password);
       else await register(email, password, name);
-      // Check if onboarding needed
-      const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false }));
-      if (onb.needs_onboarding) {
+      // Check onboarding + trial status
+      const onb = await api.checkOnboarding().catch(() => ({ needs_onboarding: false, trial_expired: false }));
+      if (onb.needs_onboarding || onb.trial_expired) {
+        setTrialExpired(onb.trial_expired);
         setShowPlan(true);
       } else {
         nav("/dashboard", { replace: true });
@@ -108,7 +114,7 @@ export default function Login() {
         <span className="mono" style={{ color: "var(--on-surface-muted)", fontSize: 11 }}>v2.4.0-stable</span>
       </div>
 
-      {showPlan && <PlanSelection onComplete={() => setShowPlan(false)} />}
+      {showPlan && <PlanSelection onComplete={() => setShowPlan(false)} defaultPlan={planParam} trialExpired={trialExpired} />}
     </div>
   );
 }

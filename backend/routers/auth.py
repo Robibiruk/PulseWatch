@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import BackgroundTasks
 from urllib.parse import urlencode
 
@@ -36,6 +36,7 @@ async def register(
         email=payload.email,
         full_name=payload.full_name,
         hashed_password=hash_password(payload.password),
+        trial_ends_at=datetime.now(timezone.utc) + timedelta(days=14),
     )
     db.add(user)
     await db.commit()
@@ -82,8 +83,20 @@ async def me(current: User = Depends(get_current_user)):
 
 @router.get("/onboarding")
 async def check_onboarding(current: User = Depends(get_current_user)):
-    """Returns whether the user needs to complete plan selection (first login)."""
-    return {"needs_onboarding": current.plan == "free" and not current.telegram_chat_id}
+    """Returns whether the user needs plan selection or upgrade prompt."""
+    now = datetime.now(timezone.utc)
+    trial_expired = (
+        current.plan == "free"
+        and current.trial_ends_at is not None
+        and current.trial_ends_at.replace(tzinfo=timezone.utc) < now
+    )
+    needs_first_plan = current.plan == "free" and not current.telegram_chat_id
+    return {
+        "needs_onboarding": needs_first_plan,
+        "trial_expired": trial_expired,
+        "plan": current.plan,
+        "trial_ends_at": current.trial_ends_at.isoformat() if current.trial_ends_at else None,
+    }
 
 
 @router.post("/plan")
