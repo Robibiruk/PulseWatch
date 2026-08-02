@@ -13,6 +13,7 @@ import License from "./pages/License";
 import Settings from "./pages/Settings";
 import PublicStatus from "./pages/PublicStatus";
 import SystemStatus from "./pages/SystemStatus";
+import PlanPage from "./pages/PlanPage";
 import Loader from "./components/Loader";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/monitor/:id" element={<RequireAuth><MonitorDetail /></RequireAuth>} />
       <Route path="/incidents" element={<RequireAuth><Incidents /></RequireAuth>} />
+      <Route path="/plan" element={<RequireAuth><PlanPage /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
       <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
       <Route path="/privacy" element={<Privacy />} />

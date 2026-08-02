@@ -90,9 +90,10 @@ async def check_onboarding(current: User = Depends(get_current_user)):
         and current.trial_ends_at is not None
         and current.trial_ends_at.replace(tzinfo=timezone.utc) < now
     )
-    needs_first_plan = current.plan == "free" and not current.telegram_chat_id
+    # Show upgrade prompt for ALL free users (trial or not) — they can skip
+    needs_upgrade = current.plan == "free"
     return {
-        "needs_onboarding": needs_first_plan,
+        "needs_onboarding": needs_upgrade,
         "trial_expired": trial_expired,
         "plan": current.plan,
         "trial_ends_at": current.trial_ends_at.isoformat() if current.trial_ends_at else None,
