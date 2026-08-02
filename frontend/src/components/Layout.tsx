@@ -153,6 +153,16 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
                 {user?.full_name || "Developer"}
               </div>
               <div className="email">{user?.email}</div>
+              {(user as any)?.plan && (user as any).plan !== "free" ? (
+                <div style={{ marginTop: 4, display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 999, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", fontSize: 10, fontWeight: 600, color: "var(--green)", letterSpacing: "0.05em" }}>
+                  {(user as any).plan.toUpperCase()}
+                </div>
+              ) : (
+                <a href="https://t.me/PulseWatchBot?start=plan_pro" target="_blank" rel="noreferrer"
+                   style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 10, fontWeight: 600, color: "var(--primary)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.2s" }}>
+                  <Icon name="sparkles" size={10} /> Upgrade
+                </a>
+              )}
             </div>
           </div>
           <button className="nav-item" onClick={() => { logout(); nav("/login"); }} style={{ borderTop: "1px solid var(--outline)" }}>
