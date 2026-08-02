@@ -120,7 +120,7 @@ export default function Landing() {
               <li><Icon name="check" /> AI explanations</li>
               <li><Icon name="check" /> Multi-channel alerts</li>
             </ul>
-            <a href="https://t.me/Pulse_WatchBot?start=plan_pro" className="btn" style={{ width: "100%", textAlign: "center" }}>Get Pro</a>
+            <a href="/login?plan=pro" className="btn" style={{ width: "100%", textAlign: "center" }}>Get Pro</a>
           </div>
           <div className="price glass-2">
             <h3>Team</h3>
