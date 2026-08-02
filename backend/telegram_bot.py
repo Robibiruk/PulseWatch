@@ -179,7 +179,7 @@ async def _plan_text(chat_id: str) -> str:
         user = await _user_by_chat(db, chat_id)
         if not user:
             return _not_linked()
-        plan = user.plan or "free"
+        plan = "team" if settings.is_admin(user.email) else (user.plan or "free")
 
     if plan == "free":
         return (

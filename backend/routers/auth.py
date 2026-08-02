@@ -78,7 +78,10 @@ async def _send_login_email(email: str, name: str, ip: str | None) -> None:
 
 @router.get("/me", response_model=UserOut)
 async def me(current: User = Depends(get_current_user)):
-    return current
+    out = UserOut.model_validate(current)
+    if settings.is_admin(current.email):
+        out.plan = "team"
+    return out
 
 
 @router.get("/onboarding")
@@ -90,6 +93,9 @@ async def check_onboarding(current: User = Depends(get_current_user)):
         and current.trial_ends_at is not None
         and current.trial_ends_at.replace(tzinfo=timezone.utc) < now
     )
+    # Admin override — never show upgrade prompts
+    if settings.is_admin(current.email):
+        return {"needs_onboarding": False, "trial_expired": False, "plan": "team", "trial_ends_at": None}
     # Show upgrade prompt for ALL free users (trial or not) — they can skip
     needs_upgrade = current.plan == "free"
     return {

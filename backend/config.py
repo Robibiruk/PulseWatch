@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     github_client_secret: str = ""
     frontend_url: str = "http://localhost:5173"
 
+    # Admin override — these emails always get team-tier access
+    admin_emails: str = "robekmedia@gmail.com"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
@@ -66,6 +69,13 @@ class Settings(BaseSettings):
     def public_base_url_clean(self) -> str:
         """public_base_url with trailing slashes stripped (avoids double-slash redirect URIs)."""
         return self.public_base_url.rstrip("/")
+
+    @property
+    def admin_email_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    def is_admin(self, email: str) -> bool:
+        return email.lower() in self.admin_email_list
 
 
 settings = Settings()
