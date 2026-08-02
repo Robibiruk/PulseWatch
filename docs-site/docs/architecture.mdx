@@ -4,38 +4,60 @@ sidebar_position: 11
 
 # Architecture
 
-PulseWatch is built around a small, focused pipeline: scheduling checks, executing requests, storing results, and emitting alerts.
+PulseWatch is a full-stack monitoring platform: React SPA frontend, FastAPI async backend, PostgreSQL database, and a distributed worker with claim-locking.
 
-## System overview
+## System Overview
 
 ```mermaid
-flowchart LR
-  A[Scheduler] --> B[Worker]
-  B --> C[Database]
-  B --> D[Notification service]
-  D --> E[Telegram]
-  D --> F[Email]
-  D --> G[Discord]
-  D --> H[Slack]
-  D --> I[Webhook]
+graph TD
+    subgraph Free Tier
+        FE[Vercel<br/>React SPA]
+        API[Render<br/>FastAPI + Worker]
+        GH[GitHub Actions<br/>5-min cron]
+        DB[(Neon<br/>Postgres)]
+    end
+    FE -->|CORS + JWT| API
+    API --> DB
+    GH -->|every 5 min| DB
+    FE -->|VITE_API_BASE| API
 ```
 
 ## Components
 
-- **Scheduler** – determines when each monitor should be checked
-- **Worker** – runs HTTP/heartbeat checks, handles retries, records results
-- **Database** – stores monitors, checks, incidents, and status page data
-- **Notification service** – formats and routes alerts to external channels
-- **Public status pages** – render uptime and incident history for visitors
+| Component | What it does |
+|:---|:---|
+| **FastAPI App** | REST API, CORS, JWT auth, public status pages |
+| **Worker Scheduler** | Claims due monitors via `SELECT FOR UPDATE SKIP LOCKED`, runs HTTP probes |
+| **Telegram Bot** | Long-polling bot for alerts, account linking, plan payments (Stars) |
+| **Notification Dispatcher** | Routes alerts to Telegram / Email / Discord / Slack / Webhooks |
+| **AI Explainer** | Optional OpenRouter-powered incident explanations |
+| **React SPA** | Dashboard, monitor config, settings, public status pages |
+| **GitHub Actions Cron** | Always-on worker (every 5 min) covering Render's sleep periods |
 
-## Data model highlights
+## Data Flow
 
-- `monitors` – monitor definitions, intervals, and status
-- `checks` – individual request outcomes with timing and status codes
-- `incidents` – failure timelines, retries, severity, and resolution state
-- `notifications` – channel-specific delivery metadata and failures
-- `status_pages` – public-facing page configuration and branding
+1. **Scheduler** finds due monitors and claims them atomically (lease + `SKIP LOCKED`)
+2. **Worker** probes each endpoint (HTTP/HTTPS/heartbeat), records the check
+3. **State machine** compares result to threshold — one failure doesn't alert
+4. After 3 consecutive failures → opens incident → dispatches alerts
+5. Recovery → resolves incident → sends recovery notification
 
-## Background jobs
+## Claim-Lock Pattern
 
-Background workers execute checks and process notification delivery. This design keeps the API surface small while allowing horizontal scaling for high check volumes.
+The worker uses `SELECT ... FOR UPDATE SKIP LOCKED` so concurrent replicas never process the same monitor. This makes it safe to run the worker on both Render (in-process) and GitHub Actions (cron) simultaneously — zero duplicate checks, zero duplicate alerts.
+
+## Database Schema
+
+- `users` — accounts, plans, trial status, Telegram linking, alert channels
+- `monitors` — definitions, intervals, SSL config, claim lease
+- `checks` — individual probe outcomes with timing
+- `incidents` — failure timelines, severity, AI explanations, resolution
+- `status_pages` — public page config (title, theme, capabilities)
+- `api_tokens` — personal access tokens for API integration
+
+## Security
+
+- JWT authentication with bcrypt password hashing
+- CORS restricted to configured origins
+- Security headers: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- Rate limiting recommended via reverse proxy for production

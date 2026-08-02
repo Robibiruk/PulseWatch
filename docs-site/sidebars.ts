@@ -4,6 +4,7 @@ const sidebars: SidebarsConfig = {
   mainSidebar: [
     { type: 'doc', id: 'getting-started', label: 'Getting Started' },
     { type: 'doc', id: 'core-features', label: 'Core Features' },
+    { type: 'doc', id: 'pricing', label: 'Plans & Pricing' },
     { type: 'doc', id: 'monitors', label: 'Monitors' },
     { type: 'doc', id: 'alerts', label: 'Alerts' },
     { type: 'doc', id: 'incidents', label: 'Incidents & AI Explanations' },

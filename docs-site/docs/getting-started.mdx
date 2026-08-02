@@ -2,48 +2,73 @@
 sidebar_position: 1
 ---
 
-# Getting Started with PulseWatch
+# Getting Started
 
-Welcome to **PulseWatch**, a developer-first uptime monitoring platform designed to help you monitor websites, APIs, SSL certificates, and heartbeat jobs with real-time notifications and public status pages.
+PulseWatch is a self-hosted uptime monitoring platform with Telegram alerts, AI-explained incidents, and public status pages. Free, forever.
 
-## Quick Start
+## Quick Start (Hosted)
 
-1. **Sign up** — Create a free account at [pulsewatch.dev](https://pulsewatch.dev). No credit card required.
-2. **Add your first monitor** — From the Dashboard, click **Add Monitor**. Paste the URL of the service you want to track.
-3. **Choose a check interval** — Free tier defaults to 5-minute checks. Developer tier supports 1-minute intervals.
-4. **Enable notification channels** — Connect Telegram from Settings → Telegram → Connect. Enable email alerts in Alert Channels.
-5. **Save** — PulseWatch immediately begins monitoring and will alert you the moment something goes down.
+1. Go to [pulsewatch-monitor.vercel.app](https://pulsewatch-monitor.vercel.app)
+2. Sign up with email or **GitHub OAuth**
+3. Choose a plan — 14-day free trial of Pro included
+4. Add your first monitor — paste any URL
+5. Get alerts on Telegram when something goes down
 
-## Monitor Types
+## Self-Host
 
-PulseWatch supports five check types to cover every infrastructure layer.
+### Prerequisites
 
-| Type | What it checks | Best for |
-|------|---------------|----------|
-| **Website** | HTTP status code, response time, redirects | Landing pages, blogs, docs |
-| **API** | JSON body shape, status code, response time | REST endpoints, GraphQL |
-| **TCP** | Port reachability, connection time | Databases, SSH, custom ports |
-| **Keyword** | Content must match expected text | Login pages, critical HTML elements |
-| **Heartbeat** | Expects a periodic ping from your server | Cron jobs, background workers, CI/CD |
+- Python 3.12+, Node.js 18+, PostgreSQL (Neon free tier works)
+- Optional: Telegram bot token from [@BotFather](https://t.me/BotFather)
 
-## Alert Channels
+### Backend
 
-- **Telegram** — Instant push notifications with incident details and action buttons. Use `/pause` and `/resume` to manage alerts from chat.
-- **Email** — Detailed incident reports with timeline and root-cause hints. Sends DOWN, RESOLVED, and periodic check-in digests.
+```bash
+git clone https://github.com/Robibiruk/PulseWatch.git
+cd PulseWatch/backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # set DATABASE_URL, SECRET_KEY
+uvicorn main:app --reload --port 8000
+```
 
-## Public Status Pages
+### Frontend
 
-Generate a shareable status page at `/status/:ownerId` or `/status/slug/:slug`. No login required for visitors. Pick a theme from Settings → Status Pages.
+```bash
+cd frontend && npm install && npm run dev
+```
 
-## What's Next
+Open `http://localhost:5173`, register, and start monitoring.
 
-- Set up **multiple monitors** for different services
-- Configure **alert channels** (Telegram + Email recommended)
-- Explore the **API Reference** for automation
-- Read the **Changelog** for latest updates
+## Environment Variables
 
-## Need Help?
+| Variable | Default | Description |
+|:---|:---|:---|
+| `DATABASE_URL` | *(required)* | PostgreSQL async URL or SQLite path |
+| `SECRET_KEY` | `dev-insecure-change-me` | JWT signing secret |
+| `CORS_ORIGINS` | `http://localhost:5173` | Allowed browser origins |
+| `TELEGRAM_BOT_TOKEN` | `""` | Bot token from @BotFather |
+| `RESEND_API_KEY` | `""` | Resend API key for email alerts |
+| `OPENROUTER_API_KEY` | `""` | OpenRouter key for AI explanations |
+| `GITHUB_CLIENT_ID` | `""` | GitHub OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | `""` | GitHub OAuth client secret |
+| `PUBLIC_BASE_URL` | `http://localhost:8000` | Backend URL (for Telegram deep links) |
+| `FRONTEND_URL` | `http://localhost:5173` | Frontend URL (for OAuth redirects) |
+| `VITE_API_BASE` | `http://localhost:8000` | Backend URL (frontend build-time) |
+| `VITE_DOCS_SITE_URL` | `http://localhost:3000` | Docs site URL (frontend build-time) |
 
-- Check the **FAQ** page for common questions
-- Open an **issue** on [GitHub](https://github.com/Robibiruk/PulseWatch/issues)
-- Join the **Discussions** for community support
+## Production Deployment
+
+PulseWatch runs on free-tier infrastructure:
+
+| Service | Host | What it runs |
+|:---|:---|:---|
+| **API** | Render | FastAPI + worker + Telegram bot |
+| **Frontend** | Vercel | React SPA |
+| **Docs** | Vercel | Docusaurus |
+| **Database** | Neon | PostgreSQL (pooled) |
+| **Worker cron** | GitHub Actions | Every 5 min |
+
+The worker uses `SELECT FOR UPDATE SKIP LOCKED` so multiple instances safely share monitors with zero duplicate checks or alerts.
+
+See [Architecture](/docs/architecture) for the full deployment topology.

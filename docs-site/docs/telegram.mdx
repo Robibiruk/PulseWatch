@@ -4,28 +4,48 @@ sidebar_position: 6
 
 # Telegram
 
-PulseWatch includes a Telegram bot for instant notifications and lightweight status commands.
+PulseWatch includes a Telegram bot ([@Pulse_WatchBot](https://t.me/Pulse_WatchBot)) for instant notifications, status commands, and plan payments via Telegram Stars.
 
 ## Connecting Telegram
 
-1. Open `@Pulse_WatchBot`
-2. Press `Start`
-3. Go to **Settings → Notifications → Connect Telegram**
-4. Authorize the bot
+1. Go to **Settings → Connect Telegram** in the dashboard
+2. Click **Connect** — opens Telegram with a deep link
+3. Press **Start** in the bot
+4. Your chat is linked — Settings flips to "Connected"
 
-Once connected, you will receive downtime, recovery, SSL, heartbeat, and performance alerts directly in Telegram.
+## Bot Commands
 
-## Available Commands
-
-- `/start`
-- `/help`
-- `/status`
-- `/about`
+| Command | What it does |
+|:---|:---|
+| `/start <token>` | Links your Telegram chat to your PulseWatch account |
+| `/status` | Shows your monitors with up/down state |
+| `/monitors` | Lists monitors with URL + check interval |
+| `/incidents` | Recent outages and recoveries |
+| `/plan` | Shows your current plan + upgrade options |
+| `/upgrade_pro` | Sends Pro invoice (50 Telegram Stars) |
+| `/upgrade_team` | Sends Team invoice (150 Telegram Stars) |
+| `/pause` | Pauses all alerts |
+| `/resume` | Resumes alerts |
+| `/help` | Lists commands |
+| `/about` | About PulseWatch |
 
 ## Notification Types
 
-- Downtime
-- Recovery
-- SSL expiration
-- Heartbeat failure
-- Performance warning
+- **Downtime** — opens an incident when a monitor fails repeatedly
+- **Recovery** — resolves the incident when the service comes back
+- **SSL expiration** — warns before certificate expires
+- **Heartbeat failure** — alerts when a heartbeat ping is missed
+- **Performance warning** — alerts on slow response times
+
+## Telegram Stars Payments
+
+PulseWatch uses Telegram Stars for plan upgrades:
+
+- **Pro** — 50 Stars/month (100 monitors, 1-min checks, status pages, SSL, AI)
+- **Team** — 150 Stars/month (unlimited monitors, 30-sec checks, team accounts)
+
+Click "Upgrade" in the sidebar or visit `/plan` in the dashboard. The bot sends an invoice directly in Telegram — no credit card needed.
+
+## Linking Flow (Technical)
+
+The dashboard generates a deep link: `https://t.me/<BotUsername>?start=<token>`. The bot resolves the username via `getMe` (not the numeric ID, which produces invalid links). When you press Start, the bot receives `/start <token>`, POSTs to `/auth/telegram/connect`, and your chat is bound to your account.

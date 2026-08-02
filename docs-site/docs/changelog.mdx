@@ -4,8 +4,54 @@ sidebar_position: 9
 
 # Changelog
 
-Stay up to date with the latest PulseWatch releases, improvements, bug fixes, and new features.
+Current version: **v2.5.0**
 
-Every release is carefully documented so you can track how PulseWatch evolves over time.
+## v2.5.0 — Plans, Payments & GitHub OAuth (August 2026)
 
-Current Version: **v2.4.0**
+### New Features
+- **GitHub OAuth login** — sign in with your GitHub account
+- **Plan system** — Free / Pro ($5/mo) / Team ($15/mo) with 14-day trials
+- **Telegram Stars payments** — pay for Pro/Team directly in Telegram
+- **Plan selection modal** — appears after first sign-in for free users
+- **Trial expiry prompts** — upgrade popup after 14-day trial ends
+- **/plan bot command** — check and upgrade your plan from Telegram
+- **System Status page** — `/status` route with live API/database/worker health
+- **Admin override** — configured emails get permanent team-tier access
+
+### Improvements
+- **Profile page redesign** — monitored-node identity card with live signal trace
+- **Landing page** — 3-tier pricing with Telegram Stars, removed dead demo button
+- **Sidebar** — plan badge (PRO/TEAM) or Upgrade button for free users
+- **Security headers** — HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy on all three services
+- **README rewrite** — centered visual style with screenshots, SVG diagrams, badges
+- **Bot /plan response** — styled plan summary with feature list and upgrade prompts
+
+### Fixes
+- Fixed backend Unicode crash on Windows (console encoding)
+- Fixed docs-site build failure (removed hardcoded win32 Rspack binding)
+- Fixed Render deployment (Python version pin via `.python-version`)
+- Fixed GitHub Actions worker crash (empty env var for int settings)
+- Fixed CORS for Vercel frontend
+- Fixed "View Live Demo" dead button
+- Fixed bot username in all deep links (`Pulse_WatchBot`)
+
+---
+
+## v2.4.0 — Telegram Bot & Incident Tracking (July 2026)
+
+### Features
+- Telegram bot with account linking, /status, /incidents, /pause, /resume
+- Incident auto-open/resolve state machine (anti-false-alarm)
+- AI incident explanations via OpenRouter
+- Public status pages with 3 themes (neon / light / minimal)
+- Heartbeat (push) monitors for cron jobs
+- Multi-channel alerts (Telegram, Email, Discord, Slack, Webhooks)
+- API tokens for script/CI integration
+- Profile page, settings, platform health dashboard
+
+### Infrastructure
+- GitHub Actions cron worker (every 5 min)
+- Render API deployment with claim-locking
+- Vercel frontend deployment
+- Neon PostgreSQL (pooled connection)
+- Security headers on all services
