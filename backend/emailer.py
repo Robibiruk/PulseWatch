@@ -14,9 +14,13 @@ This module is deliberately framework-free: it builds (subject, html, text)
 tuples so callers decide how to send (Resend, console, tests).
 """
 from datetime import datetime, timezone
+from html import escape as _html_escape
 
 
-# --- small helpers ---------------------------------------------------------
+# --- small helpers ---
+def _e(val: str | None) -> str:
+    """HTML-escape a value for safe interpolation into email templates."""
+    return _html_escape(str(val)) if val else ""
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -86,30 +90,34 @@ def _text_from_html(html: str) -> str:
 def incident_down(user_name: str, monitor_name: str, url: str,
                   status_code, reason: str, latency_ms, since_dt,
                   ai_note: str | None = None) -> tuple[str, str, str]:
+    # HTML-escape all dynamic values to prevent injection
+    un = _e(user_name or "there")
+    mn = _e(monitor_name)
+    eu = _e(url)
+    rsn = _e(reason or (f"HTTP {status_code}" if status_code else "No response"))
     title = "🚨 Monitor down — " + monitor_name
-    reason = reason or (f"HTTP {status_code}" if status_code else "No response")
     latency = f"{int(latency_ms)} ms" if latency_ms is not None else "—"
     ai_block = ""
     if ai_note:
         ai_block = (
             '<div style="margin-top:14px;padding:12px 14px;background:#0e1726;'
             'border-left:3px solid #22d3ee;border-radius:8px;font-size:13px;color:#b9c2d6;">'
-            f"<strong style='color:#22d3ee;'>🤖 AI analysis:</strong> {ai_note}</div>"
+            f"<strong style='color:#22d3ee;'>🤖 AI analysis:</strong> {_e(ai_note)}</div>"
         )
     body = f"""
-    <p style="margin:0 0 12px;color:#c7cede;">Hi {user_name or 'there'},</p>
+    <p style="margin:0 0 12px;color:#c7cede;">Hi {un},</p>
     <p style="margin:0 0 14px;color:#c7cede;">One of your monitors is <strong style="color:#ff6b6b;">down</strong>.</p>
     <table style="width:100%;border-collapse:collapse;font-size:14px;">
-      <tr><td style="padding:6px 0;color:#8b93a7;">Service</td><td style="padding:6px 0;color:#fff;font-weight:600;">{monitor_name}</td></tr>
-      <tr><td style="padding:6px 0;color:#8b93a7;">URL</td><td style="padding:6px 0;color:#9fd8ff;word-break:break-all;">{url}</td></tr>
+      <tr><td style="padding:6px 0;color:#8b93a7;">Service</td><td style="padding:6px 0;color:#fff;font-weight:600;">{mn}</td></tr>
+      <tr><td style="padding:6px 0;color:#8b93a7;">URL</td><td style="padding:6px 0;color:#9fd8ff;word-break:break-all;">{eu}</td></tr>
       <tr><td style="padding:6px 0;color:#8b93a7;">Status</td><td style="padding:6px 0;color:#ff6b6b;">{status_code or '—'}</td></tr>
-      <tr><td style="padding:6px 0;color:#8b93a7;">Reason</td><td style="padding:6px 0;color:#fff;">{reason}</td></tr>
+      <tr><td style="padding:6px 0;color:#8b93a7;">Reason</td><td style="padding:6px 0;color:#fff;">{rsn}</td></tr>
       <tr><td style="padding:6px 0;color:#8b93a7;">Latency</td><td style="padding:6px 0;color:#fff;">{latency}</td></tr>
       <tr><td style="padding:6px 0;color:#8b93a7;">Since</td><td style="padding:6px 0;color:#fff;">{_fmt_dt(since_dt)}</td></tr>
     </table>
     {ai_block}
     <p style="margin:16px 0 4px;">
-      <a href="{url}" style="display:inline-block;background:#22d3ee;color:#04121a;text-decoration:none;
+      <a href="{eu}" style="display:inline-block;background:#22d3ee;color:#04121a;text-decoration:none;
          font-weight:700;border-radius:8px;padding:10px 16px;font-size:13px;">Open monitor</a>
     </p>
     """

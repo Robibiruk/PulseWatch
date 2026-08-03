@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, ConfigDict, computed_field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, computed_field
 
 
 # ── Auth ──
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     full_name: str = ""
 
 
@@ -42,10 +42,10 @@ class Token(BaseModel):
 class MonitorCreate(BaseModel):
     name: str
     url: str | None = None
-    interval: int = 60
+    interval: int = Field(default=60, ge=30, le=3600)
     monitor_type: str = "http"
     tags: str = ""
-    request_timeout: int = 10
+    request_timeout: int = Field(default=10, ge=1, le=60)
     ip_version: str = "auto"
     follow_redirects: bool = True
     check_ssl: bool = True

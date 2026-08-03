@@ -270,7 +270,10 @@ async def delete_monitor(
 
 @router.post("/run-tick", tags=["internal"])
 async def run_tick(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
-    """Manually trigger one worker tick (handy for local testing / cron-free runs)."""
+    """Manually trigger one worker tick (admin-only — triggers all tenants' monitors)."""
     from worker import run_once
+    from config import settings
+    if not settings.is_admin(user.email):
+        raise HTTPException(status_code=403, detail="Admin access required")
     count = await run_once()
     return {"checked": count}

@@ -51,6 +51,8 @@ async def system_health(
     )).scalar_one()
     ccount = (await db.execute(
         select(func.count()).select_from(Check)
+        .join(Monitor, Monitor.id == Check.monitor_id)
+        .where(Monitor.owner_id == current.id)
     )).scalar_one()
 
     worker_ok = seconds_ago is not None and seconds_ago < 600
@@ -119,7 +121,7 @@ async def create_token(
         user_id=current.id,
         name=name,
         token_hash=_token_hash(raw),
-        preview=raw,
+        preview=raw[:6] + "..." + raw[-4:],  # Store only truncated preview, not full token
         created_at=datetime.now(timezone.utc),
         expires_at=datetime.now(timezone.utc) + timedelta(days=365),
     )
@@ -167,10 +169,9 @@ async def regenerate_status_slug(
     db: AsyncSession = Depends(get_db),
 ):
     """Rotate the public status-page slug. Returns the new public URL path."""
-    import string, random
-    alphabet = string.ascii_lowercase + string.digits
+    import secrets as _secrets
     while True:
-        candidate = "pw-" + "".join(random.choices(alphabet, k=10))
+        candidate = "pw-" + _secrets.token_urlsafe(8)
         exists = (await db.execute(
             select(User).where(User.status_slug == candidate)
         )).scalar_one_or_none()

@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import BackgroundTasks
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 import httpx
@@ -31,7 +31,7 @@ async def register(
 ):
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="An account with this email already exists")
     user = User(
         email=payload.email,
         full_name=payload.full_name,
@@ -54,6 +54,7 @@ async def _send_signup_email(email: str, name: str) -> None:
 @router.post("/token", response_model=Token)
 async def login(
     background: BackgroundTasks,
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
@@ -65,8 +66,8 @@ async def login(
             detail="Incorrect email or password",
             headers={"WW-Authenticate": "Bearer"},
         )
-    # New sign-in notice (best-effort, off the request path)
-    client_ip = os.environ.get("CLIENT_IP")
+    # New sign-in notice — use real client IP (behind Render proxy, trust X-Forwarded-For)
+    client_ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else None)
     background.add_task(_send_login_email, user.email, user.full_name, client_ip)
     return Token(access_token=create_access_token(str(user.id)))
 
@@ -108,10 +109,13 @@ async def check_onboarding(current: User = Depends(get_current_user)):
 
 @router.post("/plan")
 async def set_plan(body: dict, current: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Set user plan (called by bot after payment, or directly for free tier)."""
+    """Set user plan — admin-only for paid tiers. Paid plans are granted exclusively by the Telegram bot payment handler."""
     plan = body.get("plan", "free")
     if plan not in ("free", "pro", "team"):
         raise HTTPException(status_code=400, detail="Invalid plan")
+    # Only admins (or the bot payment handler) can set paid plans
+    if plan != "free" and not settings.is_admin(current.email):
+        raise HTTPException(status_code=403, detail="Paid plans are managed through Telegram payments")
     current.plan = plan
     await db.commit()
     return {"ok": True, "plan": plan}
@@ -126,13 +130,15 @@ GITHUB_USER_URL = "https://api.github.com/user"
 @router.get("/github/login")
 async def github_login():
     """Redirect the user to GitHub's OAuth consent screen."""
+    import secrets
     if not settings.github_client_id:
         raise HTTPException(status_code=503, detail="GitHub OAuth is not configured on this server")
+    state = secrets.token_urlsafe(32)
     params = {
         "client_id": settings.github_client_id,
         "redirect_uri": f"{settings.public_base_url_clean}/auth/github/callback",
         "scope": "user:email",
-        "state": "pulsewatch",
+        "state": state,
     }
     return RedirectResponse(f"{GITHUB_AUTHORIZE}?{urlencode(params)}")
 

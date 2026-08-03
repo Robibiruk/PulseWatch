@@ -53,6 +53,14 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_model: str = "openai/gpt-oss-20b:free"
 
+    # Fail fast if SECRET_KEY is the insecure default
+    def model_post_init(self, __context) -> None:
+        if self.secret_key in ("dev-insecure-change-me", ""):
+            raise ValueError(
+                "SECRET_KEY must be set to a secure random value in production. "
+                "Generate one: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+            )
+
     # GitHub OAuth
     github_client_id: str = ""
     github_client_secret: str = ""

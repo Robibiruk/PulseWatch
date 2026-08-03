@@ -43,29 +43,32 @@ async def test_notification(
         chans = {c for c in (current.enabled_channels or "telegram,email").split(",") if c in allowed}
 
     # ---- Email ----
+    # Always send to the user's own address — prevent arbitrary-destination email abuse
+    dest_email = current.alert_email or current.email
     if "email" in chans:
-        if not settings.resend_api_key:
+        if not dest_email:
+            results["email"] = {"ok": False, "note": "No email address set on account"}
+        elif not settings.resend_api_key:
             results["email"] = {
                 "ok": False,
                 "note": "RESEND_API_KEY is not set on the server — emails only print to console (dev fallback). Set RESEND_API_KEY + ALERT_FROM_EMAIL to send for real.",
             }
         else:
-            to = payload.email or current.alert_email or current.email
-            if not to:
+            if not dest_email:
                 results["email"] = {"ok": False, "note": "No destination email — set alert_email or pass `email`."}
             else:
-                name = current.full_name or to.split("@")[0]
+                name = current.full_name or dest_email.split("@")[0]
                 s1, h1, t1 = emailer.incident_down(
                     name, "PulseWatch Test Monitor", "https://example.com",
                     503, "HTTP 503 (this is a test)", 412, datetime.now(timezone.utc),
                     ai_note="This is a test notification — no real outage occurred.",
                 )
-                await notifications._send_email_html(s1, h1, t1, to)
+                await notifications._send_email_html(s1, h1, t1, dest_email)
                 s2, h2, t2 = emailer.incident_resolved(
                     name, "PulseWatch Test Monitor", "https://example.com", 0.3,
                 )
-                await notifications._send_email_html(s2, h2, t2, to)
-                results["email"] = {"ok": True, "to": to}
+                await notifications._send_email_html(s2, h2, t2, dest_email)
+                results["email"] = {"ok": True, "to": dest_email}
 
     # ---- Telegram ----
     if "telegram" in chans:

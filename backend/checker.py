@@ -1,10 +1,45 @@
 import math
+import socket
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import httpx
 
 TIMEOUT = 10.0
+
+
+# ── SSRF protection ────────────────────────────────────────────────────
+# Block private/loopback/link-local/metadata/ULA ranges.
+
+_PRIVATE_PREFIXES = (
+    "127.", "10.", "172.16.", "172.17.", "172.18.", "172.19.",
+    "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.",
+    "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.",
+    "192.168.", "0.", "169.254.", "100.64.",
+)
+
+
+def _is_private_ip(ip: str) -> bool:
+    """Check if an IPv4 address is in a private/link-local/metadata range."""
+    if ip in ("::1", "::ffff:127.0.0.1"):
+        return True
+    if ip.startswith("fc") or ip.startswith("fe80"):
+        return True
+    return any(ip.startswith(p) for p in _PRIVATE_PREFIXES)
+
+
+def _is_safe_target(hostname: str) -> bool:
+    """Resolve hostname and reject private/loopback/metadata IPs."""
+    try:
+        results = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for res in results:
+            ip = res[4][0]
+            if _is_private_ip(ip):
+                return False
+    except (socket.gaierror, OSError):
+        return False
+    return True
 
 # Mapping of "up" code-bucket strings (2xx/3xx/4xx/5xx) to numeric ranges.
 _UP_BUCKETS = {
@@ -63,6 +98,17 @@ async def check_site(
         headers["Authorization"] = f"Bearer {auth_bearer}"
 
     up_codes = _resolve_up_codes(up_status_codes)
+
+    # SSRF protection: reject private/loopback/metadata targets
+    parsed = urlparse(url)
+    hostname = parsed.hostname
+    if hostname and not _is_safe_target(hostname):
+        return CheckResult("down", None, None, "Blocked: target resolves to a private/internal address")
+
+    # Block non-http(s) schemes
+    if parsed.scheme and parsed.scheme.lower() not in ("http", "https"):
+        return CheckResult("down", None, None, "Blocked: only http/https schemes allowed")
+
     start = datetime.now(timezone.utc)
     ssl_expires_at = None
     try:
@@ -105,6 +151,7 @@ def _extract_ssl_expiry(url: str) -> datetime | None:
     """Fetch the server cert and return its notAfter (UTC). Uses the ssl lib."""
     import ssl
     import time as _time
+    import calendar
     from socket import create_connection
     from urllib.parse import urlparse
 
@@ -118,7 +165,8 @@ def _extract_ssl_expiry(url: str) -> datetime | None:
             cert = ssock.getpeercert()
     # cert['notAfter'] is e.g. "Jun 12 23:59:59 2027 GMT"
     ts = _time.strptime(cert["notAfter"], "%b %d %H:%M:%S %Y %Z")
-    return datetime.fromtimestamp(_time.mktime(ts), tz=timezone.utc)
+    # calendar.timegm interprets the struct_time as UTC (unlike time.mktime which uses local timezone)
+    return datetime.fromtimestamp(calendar.timegm(ts), tz=timezone.utc)
 
 
 def humanize_ms(ms: float | None) -> str:
