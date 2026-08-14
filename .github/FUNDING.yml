@@ -1,16 +1,21 @@
 # FUNDING.yml - Configure your sponsor button
 # See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
-# GitHub Sponsors - add your GitHub username(s)
+# GitHub Sponsors - add up to 4 GitHub Sponsors-enabled usernames
 github: [Robibiruk]
 
-# Example external funding platforms (uncomment and customize):
-# patreon: your-username
-# ko_fi: your-username
-# buy_me_a_coffee: your-username
-# liberapay: your-username
-# open_collective: your-username
-# tidelift: npm/your-package-name
+# External funding platforms (uncomment and customize):
+# patreon: # Replace with a single Patreon username
+# open_collective: # Replace with a single Open Collective username
+# ko_fi: # Replace with a single Ko-fi username
+# tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
+# community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
+# liberapay: # Replace with a single Liberapay username
+# issuehunt: # Replace with a single IssueHunt username
+# lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
+# polar: # Replace with a single Polar username
+# buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
+# thanks_dev: # Replace with a single thanks.dev username
 
 # Custom URLs (up to 4)
 custom: ["https://github.com/sponsors/Robibiruk"]
