@@ -160,6 +160,8 @@ def _extract_ssl_expiry(url: str) -> datetime | None:
     if not host:
         return None
     ctx = ssl.create_default_context()
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    ctx.maximum_version = ssl.TLSVersion.TLSv1_3
     with create_connection((host, port), timeout=TIMEOUT) as sock:
         with ctx.wrap_socket(sock, server_hostname=host) as ssock:
             cert = ssock.getpeercert()
