@@ -3,14 +3,17 @@ name: PulseWatch Monitor
 # The "always-awake" worker — runs on GitHub's free tier (public repo: no
 # Actions-minute cost). Each run: connect to Neon, probe all due monitors,
 # save checks, fire alerts. No paid server required.
-# Note: GitHub's schedule guarantee is ~5 minutes (the shortest reliable
-# interval for the schedule event), so this cron is a safety net; the Render
-# API's in-process worker covers faster polling while that web service is
-# awake. The claim-lock (SELECT ... FOR UPDATE SKIP LOCKED) dedupes the two.
+#
+# Cadence and the Neon free tier: Neon scales a compute to zero after 5
+# minutes of inactivity, and the Free plan bills 100 CU-hours/project/month.
+# A */5 cron re-woke the compute at exactly the suspend threshold, so it never
+# slept and burned the whole quota (425h active in one month). At */15 each
+# tick wakes the DB for ~30s and it sleeps in between — a few CU-hours/month.
+# Trade-off: outage detection latency is up to the cron interval.
 on:
   schedule:
     # UTC cron. GitHub may delay scheduled runs under load.
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"
   # Allow manual runs from the Actions tab.
   workflow_dispatch:
 
@@ -21,10 +24,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 

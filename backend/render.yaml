@@ -11,6 +11,12 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
+      # The GitHub Actions cron owns the monitoring loop. Running the in-process
+      # scheduler here too would poll the DB every POLL_INTERVAL (15s), which
+      # keeps the Neon compute permanently awake and burns the free-tier
+      # CU-hour quota. Let the compute scale to zero between cron ticks.
+      - key: NO_WORKER
+        value: "true"
       - key: CORS_ORIGINS
         sync: false
       - key: TELEGRAM_BOT_TOKEN
