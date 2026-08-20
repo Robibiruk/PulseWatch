@@ -39,6 +39,36 @@ async def init_db():
         await _migrate_columns(conn)
 
 
+# Substrings that mean the database is refusing connections for a billing /
+# quota / suspension reason rather than a code defect. Matched case-insensitively
+# against the exception text so this stays driver-agnostic (asyncpg raises
+# InsufficientResourcesError; other providers word it differently).
+_DB_UNAVAILABLE_MARKERS = (
+    "compute time quota",
+    "exceeded the compute time quota",
+    "project has exceeded",
+    "monthly free plan limit",
+    "quota",
+    "is paused",
+    "project is disabled",
+    "endpoint is disabled",
+)
+
+
+def is_db_unavailable_error(exc: BaseException) -> bool:
+    """True when `exc` indicates an expected, out-of-our-control DB outage.
+
+    Used by both entry points that call init_db():
+      * main.lifespan     - boot the API in degraded mode instead of crashing
+      * worker_runner     - exit 0 instead of failing the scheduled CI run
+
+    Genuine bugs must NOT match here, so the marker list stays specific to
+    provider quota/suspension wording.
+    """
+    text = f"{type(exc).__name__}: {exc}".lower()
+    return any(marker in text for marker in _DB_UNAVAILABLE_MARKERS)
+
+
 def _create_table_if_missing(connection, model) -> None:
     """Create a table only if it does not already exist (idempotent)."""
     from sqlalchemy import inspect as _inspect

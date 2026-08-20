@@ -17,26 +17,8 @@ Exit codes (matters for the GitHub Actions cron):
 import asyncio
 import sys
 
-from database import AsyncSessionLocal, init_db
+from database import AsyncSessionLocal, init_db, is_db_unavailable_error
 from worker import run_once, run_forever
-
-# Substrings that indicate the DB is refusing connections for a billing /
-# quota / suspension reason rather than a code defect. Matched case-insensitively
-# against the exception text so we stay driver-agnostic.
-_QUOTA_MARKERS = (
-    "compute time quota",
-    "exceeded the compute time quota",
-    "project has exceeded",
-    "reaching its monthly free plan limit",
-    "quota",
-    "is paused",
-    "project is disabled",
-)
-
-
-def _is_quota_error(exc: BaseException) -> bool:
-    text = f"{type(exc).__name__}: {exc}".lower()
-    return any(marker in text for marker in _QUOTA_MARKERS)
 
 
 async def main() -> None:
@@ -53,7 +35,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as exc:  # noqa: BLE001
-        if _is_quota_error(exc):
+        if is_db_unavailable_error(exc):
             print(
                 "[worker] SKIPPED: the database is not accepting connections "
                 f"({type(exc).__name__}: {exc}).\n"

@@ -17,7 +17,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
         return response
-from database import init_db
+from database import init_db, is_db_unavailable_error
 from routers import auth, monitors, status, telegram, heartbeat, statuspage, notifications, platform
 from telegram_bot import run_telegram_bot
 from worker import run_forever
@@ -25,7 +25,28 @@ from worker import run_forever
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    # A provider quota/suspension outage must not crash-loop the web service.
+    # Boot degraded instead: /health still answers (so the platform keeps the
+    # instance alive and the cause is visible), and the worker/bot stay down
+    # because every tick would just fail against the same dead database.
+    app.state.db_available = True
+    app.state.db_error = None
+    try:
+        await init_db()
+    except Exception as exc:  # noqa: BLE001
+        if not is_db_unavailable_error(exc):
+            raise
+        app.state.db_available = False
+        app.state.db_error = f"{type(exc).__name__}: {exc}"
+        print(
+            "[startup] DEGRADED: the database is not accepting connections "
+            f"({app.state.db_error}).\n"
+            "[startup] This is a provider quota/suspension state, not a code "
+            "failure — serving /health only. Restore the database to resume."
+        )
+        yield
+        return
+
     # Worker scheduler (continuous monitoring engine). Optional when an external
     # worker / GitHub Actions owns the loop.
     worker_ctx = None
@@ -72,8 +93,22 @@ app.include_router(platform.router)
 
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "service": "pulsewatch"}
+async def health(request: Request, response: Response):
+    """Liveness + database reachability.
+
+    Returns 503 with status "degraded" when the database is unavailable, so an
+    uptime tool (including PulseWatch itself) reports the truth instead of a
+    green tick on a service that cannot serve data.
+    """
+    if not getattr(request.app.state, "db_available", True):
+        response.status_code = 503
+        return {
+            "status": "degraded",
+            "service": "pulsewatch",
+            "database": "unavailable",
+            "detail": getattr(request.app.state, "db_error", None),
+        }
+    return {"status": "ok", "service": "pulsewatch", "database": "ok"}
 
 
 @app.get("/")
