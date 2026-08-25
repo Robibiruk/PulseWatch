@@ -169,12 +169,13 @@ async def health(request: Request, response: Response):
         async with AsyncSessionLocal() as session:
             await session.execute(_text("SELECT 1"))
     except Exception as exc:  # noqa: BLE001
+        print(f"[health] database check failed: {type(exc).__name__}: {exc}")
         response.status_code = 503
         return {
             "status": "degraded",
             "service": "pulsewatch",
             "database": "unavailable",
-            "detail": f"{type(exc).__name__}: {exc}",
+            "detail": "Database health check failed.",
         }
     return {"status": "ok", "service": "pulsewatch", "database": "ok"}
 
