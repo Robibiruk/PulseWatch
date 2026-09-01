@@ -198,50 +198,83 @@ Register an account and add your first monitor.
 
 ### Production architecture
 
-PulseWatch currently runs as a **self-hosted production deployment on an Azure Linux VM**.
+PulseWatch currently runs as a self-hosted production deployment on an Azure Linux VM.
 
-The frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM.
+The React frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM. The VM provides persistent compute for the API, monitoring worker, and Telegram bot.
 
-The Azure VM provides the persistent compute required for:
+PostgreSQL provides persistent production storage, while OpenRouter provides AI-powered incident analysis.
 
-* FastAPI
-* The continuous monitoring worker
-* Telegram long-polling
-* Incident processing
-* Notification dispatch
+                              ┌─────────────────────────┐
+                              │        ☁ VERCEL         │
+                              │   React + Vite + TS      │
+                              │       Frontend           │
+                              └────────────┬────────────┘
+                                           │
+                                      HTTPS / REST
+                                      JWT Authentication
+                                           │
+                                           ▼
+╔══════════════════════════════════════════════════════════════════════╗
+║                         AZURE LINUX VM                              ║
+║                                                                     ║
+║   ┌───────────────────┐                    ┌────────────────────┐  ║
+║   │    ⚡ FASTAPI     │                    │     ◉ WORKER       │  ║
+║   │                   │                    │                    │  ║
+║   │ REST API          │                    │ Scheduler           │  ║
+║   │ Authentication    │                    │ HTTP Probes         │  ║
+║   │ Monitor CRUD      │                    │ Failure Detection   │  ║
+║   │ Status Pages      │                    │ Incident Engine     │  ║
+║   └─────────┬─────────┘                    └───────┬────────────┘  ║
+║             │                                      │               ║
+║             │                                      │               ║
+║             └──────────────────┬───────────────────┘               ║
+║                                ▼                                   ║
+║                     ┌──────────────────────┐                       ║
+║                     │    🗄 POSTGRESQL     │                       ║
+║                     │                      │                       ║
+║                     │ Users • Monitors     │                       ║
+║                     │ Checks • Incidents   │                       ║
+║                     │ AI Explanations      │                       ║
+║                     └──────────────────────┘                       ║
+║                                                                     ║
+║   ┌────────────────────┐             ┌────────────────────────┐    ║
+║   │  Telegram Bot      │             │  Notification Engine   │    ║
+║   │  Long Polling      │             │                        │    ║
+║   │  Commands + Alerts │             │ Email • Discord         │    ║
+║   └─────────┬──────────┘             │ Slack • Webhooks        │    ║
+║             │                        └───────────┬────────────┘    ║
+╚═════════════╪════════════════════════════════════╪═════════════════╝
+              │                                    │
+              ▼                                    ▼
+       ┌──────────────┐                    ┌─────────────────┐
+       │   TELEGRAM   │                    │ ALERT CHANNELS  │
+       │    USERS     │                    │ Email / Discord │
+       └──────────────┘                    │ Slack / Webhook │
+                                           └─────────────────┘
 
-The production deployment uses a **fresh PostgreSQL database** for persistent application and monitoring data.
+                         Worker
+                           │
+                           │ Incident Evidence
+                           │ 503 • timeout • failures
+                           ▼
+                  ┌──────────────────────┐
+                  │    ✦ OPENROUTER      │
+                  │                      │
+                  │     GPT-OSS-20B      │
+                  │                      │
+                  │  AI Incident Analysis│
+                  └──────────┬───────────┘
+                             │
+                             │ AI Explanation
+                             ▼
+                  ┌──────────────────────┐
+                  │   🚨 INCIDENT       │
+                  │                      │
+                  │ Evidence + Analysis  │
+                  │ Recovery Context     │
+                  └──────────────────────┘
 
-**Neon is not used by the current production deployment.**
-
-OpenRouter is connected to the backend for AI-powered incident analysis.
-
-@startuml
-
-skinparam backgroundColor #0a0a0a
-skinparam componentStyle rectangle
-
-rectangle "Vercel\nReact + Vite + TypeScript" as FE
-
-rectangle "Azure Linux VM" {
-    component "FastAPI API" as API
-    component "Monitoring Worker" as Worker
-    database "PostgreSQL\nProduction Database" as DB
-    component "Telegram Bot" as TG
-}
-
-component "OpenRouter\nGPT-OSS-20B" as AI
-component "Notifications" as N
-
-FE --> API : REST + JWT
-API --> DB
-Worker --> DB
-Worker --> TG
-Worker --> AI
-Worker --> N
-
-@enduml
-
+                  
 ### Azure VM
 
 The Azure VM is the **persistent compute layer** of the current production deployment.
