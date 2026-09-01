@@ -1,16 +1,17 @@
 <div align="center">
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="PulseWatch — Self-hosted uptime monitoring running on an Azure Virtual Machine"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="PulseWatch — self-hosted uptime monitoring running on an Azure Virtual Machine"/>
 
 # 🔭 PulseWatch
 
 ### Self-hosted uptime monitoring with Telegram alerts, AI-explained incidents, and public status pages.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.11+-3776ab?style=flat-square&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12+-3776ab?style=flat-square&logo=python&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
-![Deployment](https://img.shields.io/badge/Production-Azure%20VM-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)
+![Production](https://img.shields.io/badge/Production-Azure%20VM-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)
+![AI](https://img.shields.io/badge/AI-OpenRouter-7c3aed?style=flat-square)
 
 [GitHub](https://github.com/Robibiruk/PulseWatch) · [Telegram](https://t.me/iamrobiii) · [LinkedIn](https://www.linkedin.com/in/robel-biruk-5923101b5/) · [Live Demo](https://pulsewatch-monitor.vercel.app)
 
@@ -22,21 +23,23 @@
 
 <img src="./docs/screenshots/dashboard.png" width="100%" alt="PulseWatch Dashboard"/>
 
-PulseWatch is a **full-stack, self-hosted uptime monitoring platform** built for developers who want to know when their services break before users notice.
+PulseWatch is a **full-stack, self-hosted uptime monitoring platform** for developers who want to know when their services break before users notice.
 
-It continuously checks HTTP/HTTPS endpoints and heartbeat monitors, records uptime and response-time data, opens and resolves incidents automatically, sends alerts through multiple channels, provides public status pages, and uses AI to explain incidents in plain English.
+It continuously checks HTTP/HTTPS endpoints and heartbeat monitors, records uptime and response-time data, automatically opens and resolves incidents, sends alerts through multiple channels, provides public status pages, and uses an AI model to explain incidents in plain English.
 
-### ☁️ Built for an always-on Azure VPS
+### ☁️ Production runs on an Azure Virtual Machine
 
-PulseWatch's production backend runs on an **Azure Virtual Machine (Azure VM)** instead of a sleeping serverless or free web-service platform. The Azure VM provides the persistent runtime required by the monitoring scheduler and Telegram long-polling bot.
+PulseWatch is no longer dependent on Render or Neon for production. The current production deployment uses an **Azure Virtual Machine running Ubuntu 24.04 LTS** as the always-on backend VPS.
 
-The Azure VM runs the core backend processes continuously:
+The Azure VM hosts the persistent backend workload:
 
-- ⚡ **FastAPI API** for the application and REST endpoints
-- 🔍 **Monitoring worker** for continuous uptime checks
+- ⚡ **FastAPI API** for REST endpoints, authentication, and status pages
+- 🔍 **Monitoring worker** for scheduled uptime checks and incident detection
 - 🤖 **Telegram bot** using long-polling
-- 📡 **Notification dispatcher** for alerts and incident updates
-- 🗄️ **Production PostgreSQL database** for PulseWatch data
+- 📡 **Notification dispatch** for incident and recovery alerts
+- 🗄️ **PostgreSQL** for the application's production data
+
+The production database is a **fresh, clean PostgreSQL database** for the current Azure deployment. **Neon is not used by the current production system.**
 
 The frontend is deployed separately and communicates with the Azure-hosted API over HTTPS.
 
@@ -54,12 +57,12 @@ The frontend is deployed separately and communicates with the Azure-hosted API o
 git clone https://github.com/Robibiruk/PulseWatch.git
 cd PulseWatch/backend
 
-python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate       # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
 
 cp .env.example .env
-# Set DATABASE_URL and SECRET_KEY in .env
+# Set DATABASE_URL, SECRET_KEY and integration keys in .env
 
 uvicorn main:app --reload --port 8000
 ```
@@ -83,43 +86,44 @@ Open `http://localhost:5173` and create an account.
 
 | Category | What you get |
 |:---|:---|
-| **Monitors** | HTTP/HTTPS, heartbeat push checks, 1–30 min intervals, SSL and domain expiry checks |
-| **Checks** | Timeout, redirects, IPv4/IPv6, GET/HEAD/POST, basic/bearer auth, status-code rules |
+| **Monitors** | HTTP/HTTPS, heartbeat push checks, configurable 1–30 min intervals, SSL and domain expiry checks |
+| **Checks** | Timeout, redirects, IPv4/IPv6, GET/HEAD/POST, basic/bearer auth, accepted status-code rules |
 | **Incidents** | Automatic open/resolve, failure threshold, recovery confirmation, duration and severity |
 | **Alerts** | Telegram, Email via Resend, Discord, Slack, generic JSON webhooks |
 | **Dashboard** | Fleet KPIs, uptime %, response time, filters and monitor details |
 | **Status Pages** | Public, auth-free pages with neon, light and minimal themes |
 | **Telegram Bot** | `/status`, `/monitors`, `/incidents`, `/pause`, `/resume`, `/help` |
 | **Authentication** | Email/password, JWT, bcrypt and API tokens |
-| **AI** | OpenRouter-powered plain-English incident explanations |
+| **AI** | OpenRouter-powered incident explanations using `openai/gpt-oss-20b` |
 | **Self-hosting** | Persistent Azure VM deployment with an always-on monitoring worker |
 
 ---
 
 ## 🏗 Architecture
 
-<img src="./docs/diagrams/architecture.svg" width="100%" alt="PulseWatch production architecture — Vercel frontend, Azure VM backend and PostgreSQL"/>
+<img src="./docs/diagrams/architecture.svg" width="100%" alt="PulseWatch production architecture — Vercel frontend, Azure VM backend, PostgreSQL, and OpenRouter AI"/>
 
 ### Production architecture
 
 ```mermaid
 graph LR
-    FE[Vercel<br/>React SPA] -->|HTTPS| API[Azure VM<br/>FastAPI API]
+    FE[Vercel<br/>React + Vite] -->|HTTPS + JWT| API[Azure VM<br/>FastAPI]
     API --> DB[(PostgreSQL<br/>Production DB)]
+    API --> AI[OpenRouter<br/>GPT-OSS-20B]
     Worker[Azure VM<br/>Monitoring Worker] --> DB
+    Worker --> AI
     Bot[Azure VM<br/>Telegram Bot] --> DB
     Worker --> Notify[Notification Dispatcher]
     Notify --> Channels[Telegram / Email / Discord / Slack / Webhook]
 ```
 
-PulseWatch is intentionally split into a public frontend and an always-on backend:
-
 **Frontend** → Vercel serves the React/Vite application.  
-**Backend** → Azure VM runs FastAPI, the scheduler/worker, and Telegram bot.  
-**Database** → PostgreSQL stores users, monitors, incidents, checks, status-page configuration, and alert settings.  
+**Azure VM** → Runs FastAPI, the monitoring scheduler/worker, and Telegram bot continuously.  
+**PostgreSQL** → Stores users, monitors, checks, incidents, status-page configuration, and alert settings.  
+**OpenRouter** → Generates plain-English incident explanations from monitoring evidence.  
 **Notifications** → The worker dispatches incident and recovery alerts to configured channels.
 
-The worker uses `SELECT FOR UPDATE SKIP LOCKED` to atomically claim due monitors. This prevents duplicate checks and duplicate alerts when multiple workers are active.
+The worker uses `SELECT FOR UPDATE SKIP LOCKED` to atomically claim due monitors. This is designed to prevent duplicate checks and duplicate alerts when multiple workers are active.
 
 ---
 
@@ -129,31 +133,38 @@ The worker uses `SELECT FOR UPDATE SKIP LOCKED` to atomically claim due monitors
 
 The production deployment uses an **Azure Virtual Machine running Ubuntu 24.04 LTS** as the self-hosted VPS.
 
-This is the heart of PulseWatch's production infrastructure. Unlike a sleeping web-service deployment, the VM remains available to perform monitoring checks continuously.
+This VM is the core of PulseWatch's production infrastructure. An uptime monitor needs a runtime that stays available continuously, so the monitoring scheduler and Telegram long-polling bot are not placed on a sleeping serverless process.
 
 | Component | Production location | Role |
 |:---|:---|:---|
-| **FastAPI** | **Azure VM** | REST API and application backend |
-| **Monitoring Worker** | **Azure VM** | Continuously schedules and performs checks |
+| **FastAPI** | **Azure VM** | REST API, authentication and application backend |
+| **Monitoring Worker** | **Azure VM** | Schedules probes and creates/resolves incidents |
 | **Telegram Bot** | **Azure VM** | Long-polling bot and account linking |
 | **PostgreSQL** | **Production database** | Persistent application data |
 | **Frontend** | **Vercel** | React/Vite SPA |
-| **AI** | OpenRouter | Incident explanations |
-| **Email** | Resend | Email notifications |
+| **AI** | **OpenRouter** | Incident explanations |
+| **Email** | **Resend** | Email notifications |
 
 ### Azure VM responsibilities
 
-The VM is responsible for the always-on workload:
+The VM handles the always-on workload:
 
 1. Accept API requests from the frontend.
 2. Run the monitoring scheduler continuously.
 3. Probe configured websites and services.
 4. Create and resolve incidents.
-5. Dispatch notifications.
-6. Keep the Telegram bot connected through long-polling.
-7. Restart backend services automatically after crashes or VM reboots when configured with a process supervisor.
+5. Generate AI incident explanations through OpenRouter.
+6. Dispatch notifications.
+7. Keep the Telegram bot connected through long-polling.
+8. Restart backend services after crashes or VM reboots when configured with a process supervisor.
 
-### Production configuration
+### Production database
+
+The current Azure deployment uses a **fresh PostgreSQL database**. It is not connected to the previous Neon project.
+
+Set the production connection string through `DATABASE_URL` rather than committing database credentials to the repository.
+
+### Production environment
 
 ```env
 DATABASE_URL=postgresql+asyncpg://...
@@ -162,16 +173,55 @@ CORS_ORIGINS=https://your-frontend-domain
 PUBLIC_BASE_URL=https://your-api-domain
 TELEGRAM_BOT_TOKEN=<bot-token>
 OPENROUTER_API_KEY=<openrouter-key>
+OPENROUTER_MODEL=openai/gpt-oss-20b
 RESEND_API_KEY=<resend-key>
 ```
 
 ### Azure networking
 
-The Azure VM should have an appropriate **Network Security Group (NSG)** configuration. Expose only the ports required by the deployment, use HTTPS for public API traffic, and restrict SSH access where practical.
+Configure the Azure **Network Security Group (NSG)** to expose only the ports required by the deployment. Use HTTPS for public API traffic, restrict SSH access where practical, and do not expose PostgreSQL directly to the public internet unless there is a specific reason to do so.
 
-For production, run the FastAPI application, monitoring worker, and Telegram bot under a process manager or service supervisor so they automatically restart after failures and system reboots.
+Run FastAPI, the monitoring worker, and Telegram bot under a process manager or service supervisor so they restart after failures and system reboots.
 
-> **Why Azure VM?** PulseWatch is an uptime monitor. Putting the monitoring worker on a server that sleeps defeats the purpose. The Azure VM gives the scheduler a persistent, always-on runtime and gives the project a real self-hosted VPS deployment.
+> **Why Azure VM?** PulseWatch is itself an uptime monitor. Running its scheduler on a sleeping service would undermine the product. An always-on Azure VM provides the persistent runtime needed for continuous monitoring.
+
+---
+
+## 🤖 AI Incident Explanations
+
+PulseWatch can send incident evidence to **OpenRouter** and generate a plain-English explanation of what may have caused the failure and how long recovery might typically take.
+
+### Current model
+
+```env
+OPENROUTER_MODEL=openai/gpt-oss-20b
+```
+
+The previous `openai/gpt-oss-20b:free` model is **not used** because OpenRouter reports that the free variant is unavailable. The current production configuration uses `openai/gpt-oss-20b`.
+
+The AI integration has been tested directly from the Azure VM and successfully returned an HTTP `200` response from OpenRouter using the current model configuration.
+
+### Incident flow
+
+```text
+Monitor failure
+      ↓
+Failure threshold reached
+      ↓
+Incident created
+      ↓
+PulseWatch sends incident evidence to OpenRouter
+      ↓
+GPT-OSS-20B generates explanation
+      ↓
+Explanation stored on the incident
+      ↓
+Dashboard / notifications can display the explanation
+```
+
+The AI is an **explanation layer**, not a source of certainty. It receives monitoring evidence and produces likely causes. It should not be treated as proof of the actual root cause.
+
+> **Cost note:** `openai/gpt-oss-20b` is not a free model. OpenRouter charged approximately `$0.00000612` for the successful VM connectivity test performed during deployment verification. Actual cost depends on usage and token volume.
 
 ---
 
@@ -184,8 +234,8 @@ For production, run the FastAPI application, monitoring worker, and Telegram bot
 | **Database** | PostgreSQL in production, SQLite for development |
 | **Auth** | JWT, python-jose, bcrypt, API tokens |
 | **Notifications** | Telegram Bot API, Resend, Discord/Slack webhooks |
-| **AI** | OpenRouter (`openai/gpt-oss-20b:free`) |
-| **Infrastructure** | Azure Virtual Machine, Vercel |
+| **AI** | OpenRouter, `openai/gpt-oss-20b` |
+| **Infrastructure** | Azure Virtual Machine, Ubuntu 24.04 LTS, Vercel |
 
 ---
 
@@ -200,7 +250,7 @@ PulseWatch/
 │   ├── telegram_bot.py      # Telegram bot + account linking
 │   ├── notifications.py     # Multi-channel alert dispatch
 │   ├── emailer.py           # HTML email templates
-│   ├── ai_explain.py        # AI incident explanations
+│   ├── ai_explain.py        # OpenRouter incident explanations
 │   ├── models.py            # SQLAlchemy ORM models
 │   ├── schemas.py           # Pydantic schemas
 │   ├── database.py          # Database engine and migrations
@@ -250,7 +300,7 @@ PulseWatch/
 | `RESEND_API_KEY` | Resend email API key |
 | `ALERT_FROM_EMAIL` | Verified sender address |
 | `OPENROUTER_API_KEY` | OpenRouter API key |
-| `OPENROUTER_MODEL` | AI model used for explanations |
+| `OPENROUTER_MODEL` | OpenRouter model, currently `openai/gpt-oss-20b` |
 | `VITE_API_BASE` | Frontend API base URL |
 
 > See [`backend/.env.example`](backend/.env.example) for the complete configuration.
@@ -351,6 +401,7 @@ Your service sends a heartbeat to a unique token URL (`POST /api/heartbeat/:toke
 - Durable Redis/RQ or ARQ job queue
 - Second-region confirmation
 - Rate limiting
+- Clear AI-vs-rule-based explanation state in the UI
 
 ### Features
 - Incident acknowledgement and assignment
