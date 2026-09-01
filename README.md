@@ -216,40 +216,31 @@ The production deployment uses a **fresh PostgreSQL database** for persistent ap
 
 OpenRouter is connected to the backend for AI-powered incident analysis.
 
-```text
-                    ┌──────────────────────┐
-                    │        Vercel        │
-                    │   React + Vite + TS  │
-                    └──────────┬───────────┘
-                               │
-                         REST + JWT
-                               │
-                               ▼
-              ┌─────────────────────────────────┐
-              │          Azure Linux VM          │
-              │                                  │
-              │  ┌────────────┐  ┌────────────┐ │
-              │  │  FastAPI   │  │   Worker   │ │
-              │  │    API     │  │  Scheduler │ │
-              │  └─────┬──────┘  └──────┬─────┘ │
-              │        │                │       │
-              │        └───────┬────────┘       │
-              │                │                │
-              │        ┌───────▼───────┐        │
-              │        │  PostgreSQL   │        │
-              │        │  Production   │        │
-              │        │    Database   │        │
-              │        └───────────────┘        │
-              │                                  │
-              │  Telegram Bot  ·  Notifications │
-              └──────────┬──────────┬────────────┘
-                         │          │
-                         ▼          ▼
-                    Telegram    OpenRouter
-                                  │
-                                  ▼
-                              GPT-OSS-20B
-```
+@startuml
+
+skinparam backgroundColor #0a0a0a
+skinparam componentStyle rectangle
+
+rectangle "Vercel\nReact + Vite + TypeScript" as FE
+
+rectangle "Azure Linux VM" {
+    component "FastAPI API" as API
+    component "Monitoring Worker" as Worker
+    database "PostgreSQL\nProduction Database" as DB
+    component "Telegram Bot" as TG
+}
+
+component "OpenRouter\nGPT-OSS-20B" as AI
+component "Notifications" as N
+
+FE --> API : REST + JWT
+API --> DB
+Worker --> DB
+Worker --> TG
+Worker --> AI
+Worker --> N
+
+@enduml
 
 ### Azure VM
 
