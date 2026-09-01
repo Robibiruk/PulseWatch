@@ -1,67 +1,84 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" fill="none">
   <defs>
-    <linearGradient id="bg2" x1="0" y1="0" x2="1000" y2="400" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#000"/>
-      <stop offset="100%" stop-color="#0a0a0a"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#000"/>
+      <stop offset="1" stop-color="#0a0a0a"/>
     </linearGradient>
   </defs>
-  <rect width="1000" height="400" fill="url(#bg2)"/>
+  <rect width="1200" height="520" fill="url(#bg)"/>
 
-  <!-- React SPA -->
-  <rect x="40" y="140" width="160" height="80" rx="12" fill="#0e0e0e" stroke="#61dafb" stroke-opacity="0.4"/>
-  <text x="120" y="172" fill="#61dafb" font-family="system-ui" font-size="13" font-weight="600" text-anchor="middle">React SPA</text>
-  <text x="120" y="192" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Vite + TypeScript</text>
+  <text x="600" y="30" fill="#555" font-family="system-ui" font-size="10" text-anchor="middle" letter-spacing="3">PULSEWATCH PRODUCTION ARCHITECTURE</text>
 
-  <!-- Arrows: SPA -> API -->
-  <line x1="200" y1="180" x2="270" y2="180" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4"/>
-  <polygon points="270,175 285,180 270,185" fill="#34d399"/>
-  <text x="235" y="172" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">REST + JWT</text>
+  <!-- Frontend -->
+  <rect x="40" y="180" width="190" height="110" rx="14" fill="#0e0e0e" stroke="#61dafb" stroke-opacity="0.5"/>
+  <text x="135" y="215" fill="#61dafb" font-family="system-ui" font-size="15" font-weight="700" text-anchor="middle">React SPA</text>
+  <text x="135" y="238" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Vite + TypeScript</text>
+  <text x="135" y="262" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Vercel</text>
 
-  <!-- FastAPI -->
-  <rect x="280" y="120" width="180" height="120" rx="12" fill="#0e0e0e" stroke="#22d3ee" stroke-opacity="0.5"/>
-  <text x="370" y="158" fill="#22d3ee" font-family="system-ui" font-size="14" font-weight="700" text-anchor="middle">FastAPI</text>
-  <text x="370" y="180" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">main:app</text>
-  <text x="370" y="200" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">API + CORS + Auth</text>
-  <text x="370" y="220" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Status Pages</text>
+  <!-- API -->
+  <rect x="330" y="120" width="220" height="150" rx="14" fill="#0e0e0e" stroke="#22d3ee" stroke-opacity="0.6"/>
+  <text x="440" y="158" fill="#22d3ee" font-family="system-ui" font-size="16" font-weight="700" text-anchor="middle">Azure VM</text>
+  <text x="440" y="181" fill="#fafafa" font-family="system-ui" font-size="14" font-weight="600" text-anchor="middle">FastAPI API</text>
+  <text x="440" y="204" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">REST + JWT + CORS</text>
+  <text x="440" y="226" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Status Pages</text>
+  <text x="440" y="247" fill="#4db8ff" font-family="system-ui" font-size="10" text-anchor="middle">Ubuntu 24.04 LTS • Always-on VPS</text>
 
   <!-- Worker -->
-  <rect x="530" y="60" width="160" height="80" rx="12" fill="#0e0e0e" stroke="#f87171" stroke-opacity="0.4"/>
-  <text x="610" y="92" fill="#f87171" font-family="system-ui" font-size="13" font-weight="600" text-anchor="middle">Worker</text>
-  <text x="610" y="112" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Scheduler + Probes</text>
+  <rect x="330" y="335" width="220" height="105" rx="14" fill="#0e0e0e" stroke="#f87171" stroke-opacity="0.5"/>
+  <text x="440" y="370" fill="#f87171" font-family="system-ui" font-size="14" font-weight="700" text-anchor="middle">Monitoring Worker</text>
+  <text x="440" y="393" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Scheduler + HTTP/SSL probes</text>
+  <text x="440" y="415" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Failure detection + incidents</text>
 
-  <!-- Arrow: API -> Worker (lifespan) -->
-  <path d="M370 120 C370 80 530 100 530 90" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5 3" fill="none"/>
-  <text x="450" y="82" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">lifespan</text>
-
-  <!-- Telegram Bot -->
-  <rect x="530" y="220" width="160" height="80" rx="12" fill="#0e0e0e" stroke="#0088cc" stroke-opacity="0.4"/>
-  <text x="610" y="252" fill="#0088cc" font-family="system-ui" font-size="13" font-weight="600" text-anchor="middle">Telegram Bot</text>
-  <text x="610" y="272" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Long-polling</text>
-
-  <!-- Arrow: API -> Bot (lifespan) -->
-  <path d="M370 240 C370 280 530 260 530 260" stroke="#0088cc" stroke-width="1.5" stroke-dasharray="5 3" fill="none"/>
+  <!-- Telegram -->
+  <rect x="650" y="335" width="220" height="105" rx="14" fill="#0e0e0e" stroke="#0088cc" stroke-opacity="0.5"/>
+  <text x="760" y="370" fill="#0088cc" font-family="system-ui" font-size="14" font-weight="700" text-anchor="middle">Telegram Bot</text>
+  <text x="760" y="393" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Long-polling</text>
+  <text x="760" y="415" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Commands + account linking</text>
 
   <!-- DB -->
-  <rect x="780" y="140" width="160" height="80" rx="12" fill="#0e0e0e" stroke="#a78bfa" stroke-opacity="0.4"/>
-  <text x="860" y="168" fill="#a78bfa" font-family="system-ui" font-size="13" font-weight="600" text-anchor="middle">Neon Postgres</text>
-  <text x="860" y="190" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Shared database</text>
+  <rect x="900" y="170" width="240" height="110" rx="14" fill="#0e0e0e" stroke="#a78bfa" stroke-opacity="0.5"/>
+  <text x="1020" y="205" fill="#a78bfa" font-family="system-ui" font-size="15" font-weight="700" text-anchor="middle">PostgreSQL</text>
+  <text x="1020" y="228" fill="#888" font-family="system-ui" font-size="11" text-anchor="middle">Production application database</text>
+  <text x="1020" y="250" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Users • Monitors • Checks • Incidents</text>
 
-  <!-- Arrow: API -> DB -->
-  <line x1="460" y1="180" x2="780" y2="180" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6 4"/>
-  <polygon points="780,175 795,180 780,185" fill="#a78bfa"/>
+  <!-- AI -->
+  <rect x="650" y="120" width="220" height="110" rx="14" fill="#0e0e0e" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="760" y="155" fill="#34d399" font-family="system-ui" font-size="15" font-weight="700" text-anchor="middle">OpenRouter AI</text>
+  <text x="760" y="178" fill="#fafafa" font-family="system-ui" font-size="12" font-weight="600" text-anchor="middle">GPT-OSS-20B</text>
+  <text x="760" y="199" fill="#888" font-family="system-ui" font-size="10" text-anchor="middle">Incident explanations</text>
+  <text x="760" y="218" fill="#666" font-family="system-ui" font-size="9" text-anchor="middle">AI root-cause analysis</text>
 
-  <!-- Arrow: Worker -> DB -->
-  <path d="M610 140 C610 160 780 170 780 175" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5 3" fill="none"/>
-  <text x="700" y="152" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">SKIP LOCKED</text>
+  <!-- Alerts -->
+  <rect x="900" y="335" width="240" height="105" rx="14" fill="#0e0e0e" stroke="#fbbf24" stroke-opacity="0.45"/>
+  <text x="1020" y="370" fill="#fbbf24" font-family="system-ui" font-size="14" font-weight="700" text-anchor="middle">Notifications</text>
+  <text x="1020" y="393" fill="#888" font-family="system-ui" font-size="10" text-anchor="middle">Telegram • Email • Discord</text>
+  <text x="1020" y="414" fill="#666" font-family="system-ui" font-size="10" text-anchor="middle">Slack • Generic Webhook</text>
 
-  <!-- Notifications -->
-  <rect x="700" y="260" width="140" height="60" rx="10" fill="#0e0e0e" stroke="#34d399" stroke-opacity="0.3"/>
-  <text x="770" y="286" fill="#34d399" font-family="system-ui" font-size="12" font-weight="600" text-anchor="middle">Alerts</text>
-  <text x="770" y="302" fill="#888" font-family="system-ui" font-size="10" text-anchor="middle">TG / Email / Webhook</text>
+  <!-- arrows -->
+  <line x1="230" y1="235" x2="330" y2="195" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="326,189 340,191 331,201" fill="#34d399"/>
+  <text x="280" y="195" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">HTTPS</text>
 
-  <!-- Arrow: Worker -> Alerts -->
-  <path d="M610 140 C680 180 740 260 740 260" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5 3" fill="none"/>
+  <path d="M440 270 C440 300 440 315 440 335" stroke="#f87171" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="435,330 440,342 445,330" fill="#f87171"/>
+  <text x="465" y="308" fill="#888" font-family="system-ui" font-size="9">worker</text>
 
-  <!-- Labels -->
-  <text x="500" y="24" fill="#555" font-family="'JetBrains Mono',monospace" font-size="10" text-anchor="middle" letter-spacing="3">PULSEWATCH ARCHITECTURE</text>
+  <line x1="550" y1="195" x2="650" y2="175" stroke="#34d399" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="645,169 658,173 647,180" fill="#34d399"/>
+  <text x="600" y="164" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">incident data</text>
+
+  <line x1="550" y1="220" x2="900" y2="220" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6 4"/>
+  <polygon points="900,215 913,220 900,225" fill="#a78bfa"/>
+  <text x="725" y="212" fill="#888" font-family="system-ui" font-size="9" text-anchor="middle">async SQLAlchemy</text>
+
+  <path d="M550 385 C680 385 760 270 900 240" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5 3" fill="none"/>
+  <text x="715" y="348" fill="#666" font-family="system-ui" font-size="9">claim lock + SKIP LOCKED</text>
+
+  <line x1="760" y1="230" x2="760" y2="335" stroke="#0088cc" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="785" y="285" fill="#666" font-family="system-ui" font-size="9">bot runtime</text>
+
+  <line x1="870" y1="385" x2="900" y2="385" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5 3"/>
+
+  <!-- bottom note -->
+  <text x="600" y="485" fill="#444" font-family="'JetBrains Mono',monospace" font-size="10" text-anchor="middle" letter-spacing="2">SELF-HOSTED • AZURE VM • ALWAYS-ON MONITORING</text>
 </svg>
