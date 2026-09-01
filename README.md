@@ -23,11 +23,9 @@
 <br/>
 
 <div align="center">
-  <a href="https://github.com/Robibiruk/PulseWatch">GitHub</a> ·
-  <a href="https://t.me/iamrobiii">Telegram</a> ·
-  <a href="https://www.linkedin.com/in/robel-biruk-5923101b5/">LinkedIn</a> ·
-  <a href="https://pulsewatch-monitor.vercel.app">Live Demo</a> ·
-  <a href="#quick-start">Quick Start</a>
+
+<a href="https://github.com/Robibiruk/PulseWatch">GitHub</a> · <a href="https://t.me/iamrobiii">Telegram</a> · <a href="https://www.linkedin.com/in/robel-biruk-5923101b5/">LinkedIn</a> · <a href="https://pulsewatch-monitor.vercel.app">Live Demo</a> · <a href="#quick-start">Quick Start</a>
+
 </div>
 
 <br/>
@@ -40,9 +38,11 @@
 
 <img src="./docs/screenshots/dashboard.png" width="100%" alt="PulseWatch Dashboard — real-time monitor fleet with KPI cards, status pills, and uptime metrics"/>
 
-> PulseWatch is a **self-hosted full-stack uptime monitoring platform** for developers who want to know when their services break before users notice. It continuously probes your endpoints, tracks uptime history, detects repeated failures, automatically opens and resolves incidents, sends alerts through multiple channels, and provides a **public status page** you can share with users.
+> PulseWatch is a **self-hosted full-stack uptime monitoring platform** for developers who want to know when their services break before users notice.
 >
-> PulseWatch also uses **OpenRouter-powered AI** to analyze the evidence collected during an incident and generate a concise, plain-English explanation of what may have happened.
+> It continuously probes your endpoints, tracks uptime history, detects repeated failures, automatically opens and resolves incidents, sends alerts through multiple channels, and provides a **public status page** you can share with users.
+>
+> PulseWatch also uses **OpenRouter-powered AI** to analyze the monitoring evidence collected when an incident occurs and generate a concise, plain-English explanation of the observed failure pattern.
 
 <div align="center">
 
@@ -177,11 +177,11 @@ Register an account and add your first monitor.
 | **Domain Monitoring**     | Domain expiry reminders                                                                                             |
 | **Alerts**                | Telegram, Email, Discord, Slack, and generic JSON webhooks                                                          |
 | **Dashboard**             | Real-time KPIs, uptime percentage, response times, filters, and monitor fleet                                       |
-| **Incidents**             | Automatic incident creation, recovery detection, duration tracking, and severity information                        |
-| **AI Analysis**           | OpenRouter-powered explanations based on actual monitoring evidence                                                 |
+| **Incidents**             | Automatic incident creation, recovery detection, duration tracking, and incident history                            |
+| **AI Analysis**           | OpenRouter-powered incident explanations based on actual monitoring evidence                                        |
 | **Status Pages**          | Public, authentication-free status pages with three visual themes                                                   |
 | **Telegram Bot**          | `/status`, `/monitors`, `/incidents`, `/pause`, `/resume`, and `/help`                                              |
-| **Authentication**        | Email/password, JWT authentication, bcrypt password hashing, and API tokens                                         |
+| **Authentication**        | Email/password, JWT authentication, bcrypt password hashing, GitHub OAuth, and API tokens                           |
 | **Monitor Configuration** | Timeout, redirects, IP version, authentication, HTTP method, accepted status codes, and tags                        |
 
 </div>
@@ -200,39 +200,74 @@ Register an account and add your first monitor.
 
 PulseWatch currently runs as a **self-hosted production deployment on an Azure Linux VM**.
 
-The React frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM. The VM provides persistent compute for the API, monitoring worker, and Telegram bot.
+The frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM.
 
-PostgreSQL provides persistent production storage, while OpenRouter provides AI-powered incident analysis.
+The Azure VM provides the persistent compute required for:
 
-```mermaid
-graph LR
-    FE[Vercel<br/>React + Vite]
-    VM[Azure Linux VM<br/>FastAPI + Worker + Telegram Bot]
-    DB[(PostgreSQL<br/>Self-hosted)]
-    AI[OpenRouter<br/>GPT-OSS-20B]
-    TG[Telegram]
-    N[Email / Discord / Slack / Webhooks]
+* FastAPI
+* The continuous monitoring worker
+* Telegram long-polling
+* Incident processing
+* Notification dispatch
 
-    FE -->|REST + JWT| VM
-    VM --> DB
-    VM --> AI
-    VM --> TG
-    VM --> N
+The production deployment uses a **fresh PostgreSQL database** for persistent application and monitoring data.
+
+**Neon is not used by the current production deployment.**
+
+OpenRouter is connected to the backend for AI-powered incident analysis.
+
+```text
+                    ┌──────────────────────┐
+                    │        Vercel        │
+                    │   React + Vite + TS  │
+                    └──────────┬───────────┘
+                               │
+                         REST + JWT
+                               │
+                               ▼
+              ┌─────────────────────────────────┐
+              │          Azure Linux VM          │
+              │                                  │
+              │  ┌────────────┐  ┌────────────┐ │
+              │  │  FastAPI   │  │   Worker   │ │
+              │  │    API     │  │  Scheduler │ │
+              │  └─────┬──────┘  └──────┬─────┘ │
+              │        │                │       │
+              │        └───────┬────────┘       │
+              │                │                │
+              │        ┌───────▼───────┐        │
+              │        │  PostgreSQL   │        │
+              │        │  Production   │        │
+              │        │    Database   │        │
+              │        └───────────────┘        │
+              │                                  │
+              │  Telegram Bot  ·  Notifications │
+              └──────────┬──────────┬────────────┘
+                         │          │
+                         ▼          ▼
+                    Telegram    OpenRouter
+                                  │
+                                  ▼
+                              GPT-OSS-20B
 ```
 
 ### Azure VM
 
-The Azure VM is the persistent compute layer of the current production deployment.
+The Azure VM is the **persistent compute layer** of the current production deployment.
 
-It runs:
+Unlike a sleeping application instance, the VM provides a continuously running environment for the monitoring engine.
 
-* FastAPI backend
-* Continuous monitoring worker
-* Telegram long-polling bot
-* PostgreSQL database
-* Incident detection and alert processing
+The VM currently hosts:
 
-This architecture avoids the sleeping-worker limitations of free-tier application hosting and allows PulseWatch to perform continuous monitoring.
+```text
+Azure Linux VM
+├── FastAPI backend
+├── Continuous monitoring worker
+├── Telegram bot
+└── PostgreSQL
+```
+
+This allows PulseWatch to continuously monitor external services without depending on a sleeping free-tier worker.
 
 ### Monitoring pipeline
 
@@ -251,22 +286,25 @@ Update monitor state
     ↓
 Failure threshold reached?
     ├── No → schedule confirmation check
+    │
     └── Yes
           ↓
       Create incident
           ↓
-      Analyze evidence with AI
+      Analyze monitoring evidence
+          ↓
+      OpenRouter AI explanation
           ↓
       Send notifications
 ```
 
 ### Claim-based worker design
 
-The scheduler uses database-backed monitor claims.
+The monitoring scheduler uses database-backed monitor claims.
 
-For PostgreSQL deployments, due monitors are selected using row-level locking with `SKIP LOCKED`. A short lease prevents another worker from processing the same monitor simultaneously.
+For PostgreSQL deployments, due monitors use row-level locking with `SKIP LOCKED`. A short lease prevents another worker from processing the same monitor simultaneously.
 
-This makes the monitoring engine **safe to scale horizontally later**, while the current production deployment uses the Azure VM as its persistent worker environment.
+This provides a foundation for **horizontal worker scaling** without producing duplicate checks or duplicate alerts.
 
 ---
 
@@ -284,7 +322,7 @@ This makes the monitoring engine **safe to scale horizontally later**, while the
 | **Backend API**       | Azure Linux VM             | FastAPI REST API                                |
 | **Monitoring Worker** | Azure Linux VM             | Continuous uptime checks and incident detection |
 | **Telegram Bot**      | Azure Linux VM             | Long-polling commands and Telegram alerts       |
-| **Database**          | PostgreSQL on Azure VM     | Persistent application and monitoring data      |
+| **Database**          | PostgreSQL                 | Persistent application and monitoring data      |
 | **AI**                | OpenRouter                 | Incident explanation and analysis               |
 | **Email**             | Resend                     | Email notifications                             |
 | **Notifications**     | Discord / Slack / Webhooks | Additional alert channels                       |
@@ -293,13 +331,21 @@ This makes the monitoring engine **safe to scale horizontally later**, while the
 
 The production backend is hosted on an **Azure Linux virtual machine**.
 
-The VM provides a persistent environment for PulseWatch instead of relying on a serverless or sleeping application instance.
+Azure provides the persistent compute environment for PulseWatch's API, monitoring worker, Telegram bot, and production database.
 
-The production database is a **fresh PostgreSQL database** used by this deployment. PulseWatch does **not** use Neon for its current production database.
+The VM is particularly important for PulseWatch because uptime monitoring requires a process that stays alive continuously.
 
-Production data includes:
+The architecture therefore avoids depending on a sleeping application instance for the core monitoring loop.
 
-* Users
+### Production database
+
+The current deployment uses a **fresh PostgreSQL database**.
+
+It is not connected to Neon.
+
+The database stores:
+
+* User accounts
 * Monitors
 * Historical checks
 * Incidents
@@ -309,29 +355,28 @@ Production data includes:
 * Public status pages
 * API tokens
 
-### Frontend
+### Frontend deployment
 
-The frontend is deployed separately and communicates with the Azure-hosted API through the configured `VITE_API_BASE` URL.
+The React frontend is deployed separately and communicates with the Azure-hosted API through:
 
 ```env
 VITE_API_BASE=https://your-api-domain
 ```
 
-### Backend
+### Backend deployment
 
-The backend runs FastAPI together with the monitoring worker and Telegram bot.
-
-A production process manager such as `systemd` should be used to keep the service running and automatically restart it if the process exits.
-
-Example service architecture:
+The Azure VM runs the backend services required for PulseWatch:
 
 ```text
 Azure VM
-├── PulseWatch FastAPI
-├── PulseWatch Worker
-├── PulseWatch Telegram Bot
+│
+├── FastAPI API
+├── Monitoring Worker
+├── Telegram Bot
 └── PostgreSQL
 ```
+
+A production process manager such as `systemd` can be used to keep services alive and automatically restart them after failures or reboots.
 
 ---
 
@@ -341,7 +386,27 @@ Azure VM
 
 </div>
 
-PulseWatch uses **OpenRouter** to analyze monitoring evidence when an incident is created.
+PulseWatch uses **OpenRouter** to analyze the evidence collected when a monitor enters an incident state.
+
+The AI is not responsible for detecting outages. The monitoring engine detects the outage first.
+
+The flow is:
+
+```text
+Monitor failure
+      ↓
+Failure threshold reached
+      ↓
+Incident created
+      ↓
+Monitoring evidence collected
+      ↓
+OpenRouter
+      ↓
+AI explanation
+      ↓
+Incident alert
+```
 
 ### Current model
 
@@ -349,16 +414,22 @@ PulseWatch uses **OpenRouter** to analyze monitoring evidence when an incident i
 openai/gpt-oss-20b
 ```
 
-When a monitor reaches the configured failure threshold, PulseWatch sends evidence such as:
+The model is configured through:
+
+```env
+OPENROUTER_MODEL=openai/gpt-oss-20b
+```
+
+### Evidence sent to the model
+
+When an incident is created, PulseWatch can provide evidence such as:
 
 * Current HTTP status code
 * Current error
 * Recent HTTP status codes
 * Failure pattern
 
-The model then generates a concise explanation of the most likely cause.
-
-Example evidence:
+For example:
 
 ```text
 Current HTTP status: 503
@@ -366,34 +437,63 @@ Current error: Service unavailable
 Recent HTTP status codes: [200, 200, 503, 503, 503]
 ```
 
-The AI can identify the important pattern:
+The model can recognize the observed transition:
 
 ```text
 200 → 200 → 503 → 503 → 503
 ```
 
-and explain that the service was previously responding normally before returning consecutive 503 responses.
+and explain that the monitored service was previously responding successfully before returning consecutive `503` responses.
 
-### Important limitation
+### What the AI can and cannot know
 
-PulseWatch's AI does **not** have access to the monitored server's internal logs, CPU usage, memory usage, database state, or infrastructure configuration.
+The AI explanation is **evidence-based**, not a magical root-cause detector.
 
-Therefore, it should not claim to know the exact root cause when the evidence does not support it.
+PulseWatch does not currently provide the model with:
 
-For example, the AI may identify:
+* Application logs from the monitored service
+* CPU metrics from the monitored service
+* Memory metrics
+* Database internals
+* Server process information
+* Cloud infrastructure metrics
+
+Therefore, the AI should not claim that it knows the exact root cause.
+
+For example, a sequence of `503` responses may be consistent with:
 
 * Application failure
 * Resource exhaustion
 * Dependency failure
 * Temporary service unavailability
 
-as possible causes, but it should clearly distinguish these from directly observed evidence.
+These are possible explanations, not confirmed facts unless the monitoring evidence supports them.
+
+### Example AI output
+
+For:
+
+```text
+HTTP 503
+Error: Service unavailable
+Recent: [200, 200, 503, 503, 503]
+```
+
+the AI may produce an explanation identifying:
+
+1. The currently observed `503` failure.
+2. The transition from successful responses to consecutive failures.
+3. Plausible underlying causes.
+4. What evidence is missing.
+5. A practical recovery estimate.
+
+This makes the AI output useful while avoiding false certainty.
 
 ### Graceful fallback
 
-If OpenRouter is unavailable, incorrectly configured, or no API key is provided, PulseWatch falls back to deterministic rule-based explanations.
+If OpenRouter is unavailable, misconfigured, or no API key is provided, PulseWatch falls back to deterministic rule-based explanations.
 
-Common fallback cases include:
+Supported fallback conditions include:
 
 * HTTP 500
 * HTTP 502
@@ -403,7 +503,7 @@ Common fallback cases include:
 * DNS failures
 * Request timeouts
 
-This means incident detection and alerting continue even if the AI service is unavailable.
+The monitoring engine and incident system therefore continue functioning even when the AI service is unavailable.
 
 ---
 
@@ -549,8 +649,6 @@ PulseWatch can send incident and recovery notifications through:
 * **Slack**
 * **Generic JSON webhooks**
 
-Channels are configured per user.
-
 When a monitor reaches the failure threshold:
 
 ```text
@@ -565,7 +663,17 @@ AI explanation generated
 Notification dispatched
 ```
 
-When the monitor recovers, PulseWatch resolves the incident and sends a recovery notification.
+When the monitor recovers:
+
+```text
+Service recovers
+      ↓
+Incident resolved
+      ↓
+Recovery duration calculated
+      ↓
+Recovery notification sent
+```
 
 ---
 
@@ -668,6 +776,8 @@ Before exposing a deployment publicly:
 * [ ] Keep the Azure VM and system packages updated
 * [ ] Configure automatic service restart with `systemd`
 * [ ] Restrict unnecessary Azure VM inbound ports
+* [ ] Configure PostgreSQL backups
+* [ ] Monitor the PulseWatch worker itself
 
 Generate a strong secret with:
 
@@ -744,6 +854,7 @@ PulseWatch/
 * Rate limiting
 * Better worker supervision
 * Monitoring worker health
+* Automated PostgreSQL backups
 
 ### Features
 
@@ -759,7 +870,7 @@ PulseWatch/
 
 * Docker / Docker Compose deployment
 * Automated Azure deployment
-* Automated PostgreSQL backups
+* Automated PostgreSQL backup and recovery
 * Multi-region monitoring
 * Distributed workers
 
@@ -768,7 +879,7 @@ PulseWatch/
 ```text
 Current
 │
-├── Azure VM
+├── Azure Linux VM
 ├── PostgreSQL
 ├── 1 monitoring worker
 └── Continuous monitoring
