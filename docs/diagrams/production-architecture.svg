@@ -1,0 +1,789 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <!-- Background -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1400" y2="900">
+      <stop offset="0%" stop-color="#080B14"/>
+      <stop offset="50%" stop-color="#0D1220"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+
+    <!-- Azure container -->
+    <linearGradient id="azureBox" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#101A32"/>
+      <stop offset="1" stop-color="#0A1022"/>
+    </linearGradient>
+
+    <!-- Card -->
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#151D32"/>
+      <stop offset="1" stop-color="#0E1426"/>
+    </linearGradient>
+
+    <!-- AI card -->
+    <linearGradient id="aiCard" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#24153B"/>
+      <stop offset="1" stop-color="#12152D"/>
+    </linearGradient>
+
+    <!-- Database -->
+    <linearGradient id="db" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#122B2B"/>
+      <stop offset="1" stop-color="#0D1D25"/>
+    </linearGradient>
+
+    <!-- Glows -->
+    <filter id="glowBlue" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="glowPurple" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Arrow -->
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#60A5FA"/>
+    </marker>
+
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#C084FC"/>
+    </marker>
+
+    <!-- Grid -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" stroke="#FFFFFF" stroke-opacity="0.035"/>
+    </pattern>
+
+    <!-- Animated flow -->
+    <linearGradient id="flowBlue">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#60A5FA" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="flowPurple">
+      <stop offset="0%" stop-color="#C084FC" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#C084FC"/>
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ========================================================= -->
+  <!-- BACKGROUND -->
+  <!-- ========================================================= -->
+
+  <rect width="1400" height="900" rx="28" fill="url(#bg)"/>
+  <rect width="1400" height="900" rx="28" fill="url(#grid)"/>
+
+  <!-- Decorative ambient glows -->
+  <circle cx="190" cy="180" r="140" fill="#2563EB" opacity="0.06"/>
+  <circle cx="1120" cy="500" r="180" fill="#9333EA" opacity="0.07"/>
+  <circle cx="700" cy="760" r="160" fill="#06B6D4" opacity="0.04"/>
+
+  <!-- ========================================================= -->
+  <!-- TITLE -->
+  <!-- ========================================================= -->
+
+  <text x="70" y="65"
+        fill="#F8FAFC"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="28"
+        font-weight="700">
+    PulseWatch Production Architecture
+  </text>
+
+  <text x="70" y="92"
+        fill="#64748B"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="14">
+    Self-hosted monitoring infrastructure • Azure Linux VM • AI-powered incident analysis
+  </text>
+
+  <!-- ========================================================= -->
+  <!-- VERCEL -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="520" y="125" width="360" height="120" rx="22"
+          fill="url(#card)"
+          stroke="#334155"
+          stroke-width="1.5"/>
+
+    <circle cx="555" cy="165" r="18"
+            fill="#111827"
+            stroke="#60A5FA"
+            stroke-width="2"
+            filter="url(#glowBlue)"/>
+
+    <path d="M548 174 L555 157 L562 174 Z"
+          fill="#F8FAFC"/>
+
+    <text x="585" y="166"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="18"
+          font-weight="700">
+      VERCEL
+    </text>
+
+    <text x="585" y="190"
+          fill="#94A3B8"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="14">
+      React + Vite + TypeScript
+    </text>
+
+    <text x="585" y="213"
+          fill="#60A5FA"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      FRONTEND
+    </text>
+  </g>
+
+  <!-- ========================================================= -->
+  <!-- FRONTEND → AZURE -->
+  <!-- ========================================================= -->
+
+  <path d="M700 245 C700 275 700 280 700 305"
+        stroke="#60A5FA"
+        stroke-width="2"
+        marker-end="url(#arrowBlue)"
+        opacity="0.8"/>
+
+  <text x="725" y="274"
+        fill="#60A5FA"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="12">
+    HTTPS / REST
+  </text>
+
+  <text x="725" y="291"
+        fill="#64748B"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="11">
+    JWT Authentication
+  </text>
+
+  <!-- animated packet -->
+  <circle r="4" fill="#60A5FA" filter="url(#glowBlue)">
+    <animateMotion dur="2.2s" repeatCount="indefinite"
+      path="M700 245 C700 275 700 280 700 305"/>
+  </circle>
+
+  <!-- ========================================================= -->
+  <!-- AZURE VM CONTAINER -->
+  <!-- ========================================================= -->
+
+  <rect x="90" y="305" width="1220" height="430" rx="30"
+        fill="url(#azureBox)"
+        stroke="#2563EB"
+        stroke-opacity="0.45"
+        stroke-width="2"/>
+
+  <rect x="91" y="306" width="1218" height="428" rx="29"
+        stroke="#60A5FA"
+        stroke-opacity="0.08"
+        stroke-width="1"/>
+
+  <!-- Azure header -->
+  <circle cx="130" cy="345" r="12"
+          fill="#0078D4"
+          filter="url(#glowBlue)"/>
+
+  <text x="155" y="351"
+        fill="#E2E8F0"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="17"
+        font-weight="700">
+    AZURE LINUX VM
+  </text>
+
+  <text x="1080" y="351"
+        fill="#475569"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="12">
+    PERSISTENT COMPUTE
+  </text>
+
+  <!-- ========================================================= -->
+  <!-- FASTAPI -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="145" y="390" width="300" height="190" rx="20"
+          fill="url(#card)"
+          stroke="#334155"
+          stroke-width="1.5"/>
+
+    <circle cx="185" cy="430" r="20"
+            fill="#0F172A"
+            stroke="#22D3EE"
+            stroke-width="2"
+            filter="url(#glowBlue)"/>
+
+    <text x="175" y="437"
+          fill="#22D3EE"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="20">
+      ⚡
+    </text>
+
+    <text x="220" y="432"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="18"
+          font-weight="700">
+      FASTAPI
+    </text>
+
+    <text x="175" y="470"
+          fill="#CBD5E1"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="13">
+      REST API
+    </text>
+
+    <text x="175" y="494"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Authentication
+    </text>
+
+    <text x="175" y="516"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Monitor CRUD
+    </text>
+
+    <text x="175" y="538"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Public Status Pages
+    </text>
+
+    <text x="175" y="560"
+          fill="#22D3EE"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      API LAYER
+    </text>
+  </g>
+
+  <!-- ========================================================= -->
+  <!-- WORKER -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="500" y="390" width="300" height="190" rx="20"
+          fill="url(#card)"
+          stroke="#334155"
+          stroke-width="1.5"/>
+
+    <circle cx="540" cy="430" r="20"
+            fill="#0F172A"
+            stroke="#A78BFA"
+            stroke-width="2"
+            filter="url(#glowPurple)"/>
+
+    <text x="530" y="437"
+          fill="#A78BFA"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="19">
+      ◉
+    </text>
+
+    <text x="575" y="432"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="18"
+          font-weight="700">
+      WORKER
+    </text>
+
+    <text x="530" y="470"
+          fill="#CBD5E1"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="13">
+      Scheduler
+    </text>
+
+    <text x="530" y="494"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      HTTP / HTTPS Probes
+    </text>
+
+    <text x="530" y="516"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Failure Detection
+    </text>
+
+    <text x="530" y="538"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Incident Engine
+    </text>
+
+    <text x="530" y="560"
+          fill="#A78BFA"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      MONITORING ENGINE
+    </text>
+  </g>
+
+  <!-- ========================================================= -->
+  <!-- API ↔ WORKER -->
+  <!-- ========================================================= -->
+
+  <path d="M445 470 C465 445 480 445 500 470"
+        stroke="#475569"
+        stroke-width="2"
+        marker-end="url(#arrowBlue)"
+        opacity="0.8"/>
+
+  <path d="M500 500 C480 525 465 525 445 500"
+        stroke="#475569"
+        stroke-width="2"
+        marker-end="url(#arrowPurple)"
+        opacity="0.6"/>
+
+  <!-- ========================================================= -->
+  <!-- DATABASE -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="350" y="615" width="445" height="90" rx="18"
+          fill="url(#db)"
+          stroke="#14B8A6"
+          stroke-opacity="0.55"
+          stroke-width="1.5"/>
+
+    <ellipse cx="390" cy="660" rx="20" ry="12"
+             fill="#0F2928"
+             stroke="#2DD4BF"
+             stroke-width="2"/>
+
+    <path d="M370 660 V678 C370 685 410 685 410 678 V660"
+          stroke="#2DD4BF"
+          stroke-width="2"/>
+
+    <text x="430" y="654"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17"
+          font-weight="700">
+      POSTGRESQL
+    </text>
+
+    <text x="430" y="677"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Users · Monitors · Checks · Incidents · AI Explanations
+    </text>
+
+    <text x="430" y="696"
+          fill="#2DD4BF"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="10">
+      PRODUCTION DATABASE
+    </text>
+  </g>
+
+  <!-- API → DB -->
+  <path d="M295 580 C295 610 350 620 390 620"
+        stroke="#2DD4BF"
+        stroke-width="1.8"
+        marker-end="url(#arrowBlue)"
+        opacity="0.7"/>
+
+  <!-- Worker → DB -->
+  <path d="M650 580 C650 605 620 615 600 615"
+        stroke="#2DD4BF"
+        stroke-width="1.8"
+        marker-end="url(#arrowBlue)"
+        opacity="0.7"/>
+
+  <!-- ========================================================= -->
+  <!-- TELEGRAM BOT -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="850" y="390" width="190" height="125" rx="18"
+          fill="url(#card)"
+          stroke="#334155"
+          stroke-width="1.5"/>
+
+    <circle cx="890" cy="425" r="17"
+            fill="#0F172A"
+            stroke="#38BDF8"
+            stroke-width="2"/>
+
+    <text x="881" y="431"
+          fill="#38BDF8"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17">
+      ✈
+    </text>
+
+    <text x="915" y="430"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="15"
+          font-weight="700">
+      TELEGRAM BOT
+    </text>
+
+    <text x="875" y="460"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Long Polling
+    </text>
+
+    <text x="875" y="480"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Commands + Alerts
+    </text>
+
+    <text x="875" y="500"
+          fill="#38BDF8"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="10">
+      BOT SERVICE
+    </text>
+  </g>
+
+  <!-- ========================================================= -->
+  <!-- NOTIFICATION ENGINE -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="1070" y="390" width="190" height="125" rx="18"
+          fill="url(#card)"
+          stroke="#334155"
+          stroke-width="1.5"/>
+
+    <circle cx="1110" cy="425" r="17"
+            fill="#0F172A"
+            stroke="#F59E0B"
+            stroke-width="2"/>
+
+    <text x="1101" y="431"
+          fill="#F59E0B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17">
+      🔔
+    </text>
+
+    <text x="1135" y="430"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="14"
+          font-weight="700">
+      ALERT ENGINE
+    </text>
+
+    <text x="1095" y="460"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Email · Discord
+    </text>
+
+    <text x="1095" y="480"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Slack · Webhooks
+    </text>
+
+    <text x="1095" y="500"
+          fill="#F59E0B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="10">
+      NOTIFICATION LAYER
+    </text>
+  </g>
+
+  <!-- ========================================================= -->
+  <!-- WORKER → TELEGRAM / ALERTS -->
+  <!-- ========================================================= -->
+
+  <path d="M800 455 C820 455 830 440 850 440"
+        stroke="#38BDF8"
+        stroke-width="1.8"
+        marker-end="url(#arrowBlue)"
+        opacity="0.7"/>
+
+  <path d="M800 490 C900 530 1010 530 1070 465"
+        stroke="#F59E0B"
+        stroke-width="1.8"
+        marker-end="url(#arrowBlue)"
+        opacity="0.65"/>
+
+  <!-- ========================================================= -->
+  <!-- EXTERNAL SERVICES -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="845" y="555" width="200" height="75" rx="16"
+          fill="#0E1728"
+          stroke="#38BDF8"
+          stroke-opacity="0.45"/>
+
+    <text x="945" y="583"
+          text-anchor="middle"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="14"
+          font-weight="700">
+      TELEGRAM USERS
+    </text>
+
+    <text x="945" y="606"
+          text-anchor="middle"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Alerts + Bot Commands
+    </text>
+  </g>
+
+  <g>
+    <rect x="1070" y="555" width="190" height="75" rx="16"
+          fill="#0E1728"
+          stroke="#F59E0B"
+          stroke-opacity="0.45"/>
+
+    <text x="1165" y="583"
+          text-anchor="middle"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="14"
+          font-weight="700">
+      USERS / SERVICES
+    </text>
+
+    <text x="1165" y="606"
+          text-anchor="middle"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      Email · Discord · Slack
+    </text>
+  </g>
+
+  <path d="M945 515 C945 530 945 540 945 555"
+        stroke="#38BDF8"
+        stroke-width="1.6"
+        marker-end="url(#arrowBlue)"/>
+
+  <path d="M1165 515 C1165 530 1165 540 1165 555"
+        stroke="#F59E0B"
+        stroke-width="1.6"
+        marker-end="url(#arrowBlue)"/>
+
+  <!-- ========================================================= -->
+  <!-- INCIDENT → OPENROUTER -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="210" y="780" width="280" height="82" rx="18"
+          fill="#21152F"
+          stroke="#C084FC"
+          stroke-opacity="0.65"
+          stroke-width="1.5"/>
+
+    <circle cx="245" cy="820" r="15"
+            fill="#2E1742"
+            stroke="#C084FC"
+            stroke-width="2"
+            filter="url(#glowPurple)"/>
+
+    <text x="237" y="826"
+          fill="#C084FC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="15">
+      🚨
+    </text>
+
+    <text x="275" y="814"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="15"
+          font-weight="700">
+      INCIDENT EVIDENCE
+    </text>
+
+    <text x="275" y="836"
+          fill="#A78BFA"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="11">
+      503 · Timeout · Failure Pattern
+    </text>
+  </g>
+
+  <!-- Worker → Incident -->
+  <path d="M550 580 C500 660 430 710 350 780"
+        stroke="#C084FC"
+        stroke-width="2"
+        marker-end="url(#arrowPurple)"
+        opacity="0.8"/>
+
+  <!-- ========================================================= -->
+  <!-- OPENROUTER -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="555" y="760" width="320" height="110" rx="22"
+          fill="url(#aiCard)"
+          stroke="#A855F7"
+          stroke-opacity="0.7"
+          stroke-width="2"/>
+
+    <circle cx="600" cy="805" r="20"
+            fill="#30134A"
+            stroke="#C084FC"
+            stroke-width="2"
+            filter="url(#glowPurple)"/>
+
+    <text x="590" y="812"
+          fill="#E9D5FF"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="18">
+      ✦
+    </text>
+
+    <text x="635" y="807"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17"
+          font-weight="700">
+      OPENROUTER
+    </text>
+
+    <text x="635" y="831"
+          fill="#C084FC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="13">
+      GPT-OSS-20B
+    </text>
+
+    <text x="635" y="851"
+          fill="#64748B"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="10">
+      AI INCIDENT ANALYSIS
+    </text>
+  </g>
+
+  <!-- Incident → AI -->
+  <path d="M490 820 C515 820 530 815 555 815"
+        stroke="#C084FC"
+        stroke-width="2"
+        marker-end="url(#arrowPurple)"/>
+
+  <!-- ========================================================= -->
+  <!-- AI → RESOLUTION -->
+  <!-- ========================================================= -->
+
+  <g>
+    <rect x="940" y="760" width="330" height="110" rx="22"
+          fill="url(#card)"
+          stroke="#22C55E"
+          stroke-opacity="0.55"
+          stroke-width="1.5"/>
+
+    <circle cx="980" cy="805" r="19"
+            fill="#10251A"
+            stroke="#22C55E"
+            stroke-width="2"/>
+
+    <text x="972" y="812"
+          fill="#4ADE80"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17">
+      ✓
+    </text>
+
+    <text x="1015" y="807"
+          fill="#F8FAFC"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="17"
+          font-weight="700">
+      AI EXPLANATION
+    </text>
+
+    <text x="1015" y="831"
+          fill="#94A3B8"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="12">
+      Likely cause · Evidence · Recovery
+    </text>
+
+    <text x="1015" y="852"
+          fill="#22C55E"
+          font-family="Inter,Segoe UI,Arial,sans-serif"
+          font-size="10">
+      INCIDENT CONTEXT
+    </text>
+  </g>
+
+  <path d="M875 815 C900 815 915 815 940 815"
+        stroke="#22C55E"
+        stroke-width="2"
+        marker-end="url(#arrowPurple)"
+        opacity="0.8"/>
+
+  <!-- ========================================================= -->
+  <!-- ANIMATED DATA FLOWS -->
+  <!-- ========================================================= -->
+
+  <circle r="4" fill="#A78BFA" filter="url(#glowPurple)">
+    <animateMotion dur="2.8s" repeatCount="indefinite"
+      path="M550 580 C500 660 430 710 350 780"/>
+  </circle>
+
+  <circle r="4" fill="#C084FC" filter="url(#glowPurple)">
+    <animateMotion dur="2.4s" repeatCount="indefinite"
+      path="M490 820 C515 820 530 815 555 815"/>
+  </circle>
+
+  <circle r="4" fill="#22C55E">
+    <animateMotion dur="2.5s" repeatCount="indefinite"
+      path="M875 815 C900 815 915 815 940 815"/>
+  </circle>
+
+  <!-- ========================================================= -->
+  <!-- FOOTER -->
+  <!-- ========================================================= -->
+
+  <text x="70" y="890"
+        fill="#475569"
+        font-family="Inter,Segoe UI,Arial,sans-serif"
+        font-size="11">
+    PulseWatch • Continuous monitoring • Incident detection • Multi-channel alerts • AI-assisted analysis
+  </text>
+
+</svg>
