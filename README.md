@@ -198,83 +198,16 @@ Register an account and add your first monitor.
 
 ### Production architecture
 
-PulseWatch currently runs as a self-hosted production deployment on an Azure Linux VM.
+PulseWatch currently runs as a **self-hosted production deployment on an Azure Linux VM**.
 
-The React frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM. The VM provides persistent compute for the API, monitoring worker, and Telegram bot.
+The React frontend is deployed separately on Vercel and communicates with the FastAPI backend through HTTPS/REST with JWT authentication.
 
-PostgreSQL provides persistent production storage, while OpenRouter provides AI-powered incident analysis.
+The Azure VM provides persistent compute for the FastAPI API, monitoring worker, Telegram bot, notification engine, and production PostgreSQL database. OpenRouter is used to analyze incident evidence and generate concise AI explanations.
 
-                              ┌─────────────────────────┐
-                              │        ☁ VERCEL         │
-                              │   React + Vite + TS      │
-                              │       Frontend           │
-                              └────────────┬────────────┘
-                                           │
-                                      HTTPS / REST
-                                      JWT Authentication
-                                           │
-                                           ▼
-╔══════════════════════════════════════════════════════════════════════╗
-║                         AZURE LINUX VM                              ║
-║                                                                     ║
-║   ┌───────────────────┐                    ┌────────────────────┐  ║
-║   │    ⚡ FASTAPI     │                    │     ◉ WORKER       │  ║
-║   │                   │                    │                    │  ║
-║   │ REST API          │                    │ Scheduler           │  ║
-║   │ Authentication    │                    │ HTTP Probes         │  ║
-║   │ Monitor CRUD      │                    │ Failure Detection   │  ║
-║   │ Status Pages      │                    │ Incident Engine     │  ║
-║   └─────────┬─────────┘                    └───────┬────────────┘  ║
-║             │                                      │               ║
-║             │                                      │               ║
-║             └──────────────────┬───────────────────┘               ║
-║                                ▼                                   ║
-║                     ┌──────────────────────┐                       ║
-║                     │    🗄 POSTGRESQL     │                       ║
-║                     │                      │                       ║
-║                     │ Users • Monitors     │                       ║
-║                     │ Checks • Incidents   │                       ║
-║                     │ AI Explanations      │                       ║
-║                     └──────────────────────┘                       ║
-║                                                                     ║
-║   ┌────────────────────┐             ┌────────────────────────┐    ║
-║   │  Telegram Bot      │             │  Notification Engine   │    ║
-║   │  Long Polling      │             │                        │    ║
-║   │  Commands + Alerts │             │ Email • Discord         │    ║
-║   └─────────┬──────────┘             │ Slack • Webhooks        │    ║
-║             │                        └───────────┬────────────┘    ║
-╚═════════════╪════════════════════════════════════╪═════════════════╝
-              │                                    │
-              ▼                                    ▼
-       ┌──────────────┐                    ┌─────────────────┐
-       │   TELEGRAM   │                    │ ALERT CHANNELS  │
-       │    USERS     │                    │ Email / Discord │
-       └──────────────┘                    │ Slack / Webhook │
-                                           └─────────────────┘
-
-                         Worker
-                           │
-                           │ Incident Evidence
-                           │ 503 • timeout • failures
-                           ▼
-                  ┌──────────────────────┐
-                  │    ✦ OPENROUTER      │
-                  │                      │
-                  │     GPT-OSS-20B      │
-                  │                      │
-                  │  AI Incident Analysis│
-                  └──────────┬───────────┘
-                             │
-                             │ AI Explanation
-                             ▼
-                  ┌──────────────────────┐
-                  │   🚨 INCIDENT       │
-                  │                      │
-                  │ Evidence + Analysis  │
-                  │ Recovery Context     │
-                  └──────────────────────┘
-
-                  
+<img src="./docs/diagrams/production-architecture.svg"
+     width="100%"
+     alt="PulseWatch production architecture showing Vercel, Azure Linux VM, FastAPI, monitoring worker, PostgreSQL, Telegram, notifications, OpenRouter and GPT-OSS-20B"/>
+     
 ### Azure VM
 
 The Azure VM is the **persistent compute layer** of the current production deployment.
