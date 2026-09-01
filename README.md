@@ -1,76 +1,116 @@
 <div align="center">
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="PulseWatch — self-hosted uptime monitoring running on an Azure Virtual Machine"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="PulseWatch — Self-hosted uptime monitoring with Telegram alerts, AI-explained incidents, public status pages, and Azure deployment"/>
+
+</div>
+
+<div align="center">
 
 # 🔭 PulseWatch
 
 ### Self-hosted uptime monitoring with Telegram alerts, AI-explained incidents, and public status pages.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.12+-3776ab?style=flat-square&logo=python&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
-![Production](https://img.shields.io/badge/Production-Azure%20VM-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)
-![AI](https://img.shields.io/badge/AI-OpenRouter-7c3aed?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12+-3776ab?style=flat-square\&logo=python\&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square\&logo=react\&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square\&logo=fastapi\&logoColor=white)
+![Azure](https://img.shields.io/badge/Deployed-Azure%20VM-0078D4?style=flat-square\&logo=microsoftazure\&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square\&logo=postgresql\&logoColor=white)
+![AI](https://img.shields.io/badge/AI-OpenRouter-7C3AED?style=flat-square)
 
-[GitHub](https://github.com/Robibiruk/PulseWatch) · [Telegram](https://t.me/iamrobiii) · [LinkedIn](https://www.linkedin.com/in/robel-biruk-5923101b5/) · [Live Demo](https://pulsewatch-monitor.vercel.app)
+</div>
+
+<br/>
+
+<div align="center">
+  <a href="https://github.com/Robibiruk/PulseWatch">GitHub</a> ·
+  <a href="https://t.me/iamrobiii">Telegram</a> ·
+  <a href="https://www.linkedin.com/in/robel-biruk-5923101b5/">LinkedIn</a> ·
+  <a href="https://pulsewatch-monitor.vercel.app">Live Demo</a> ·
+  <a href="#quick-start">Quick Start</a>
+</div>
+
+<br/>
+
+<div align="center">
+
+## ✨ What is PulseWatch?
+
+</div>
+
+<img src="./docs/screenshots/dashboard.png" width="100%" alt="PulseWatch Dashboard — real-time monitor fleet with KPI cards, status pills, and uptime metrics"/>
+
+> PulseWatch is a **self-hosted full-stack uptime monitoring platform** for developers who want to know when their services break before users notice. It continuously probes your endpoints, tracks uptime history, detects repeated failures, automatically opens and resolves incidents, sends alerts through multiple channels, and provides a **public status page** you can share with users.
+>
+> PulseWatch also uses **OpenRouter-powered AI** to analyze the evidence collected during an incident and generate a concise, plain-English explanation of what may have happened.
+
+<div align="center">
+
+|           🔔 **Instant Alerts**           |          📊 **Live Dashboard**          |         🌐 **Public Status**         |                🤖 **AI Analysis**               |
+| :---------------------------------------: | :-------------------------------------: | :----------------------------------: | :---------------------------------------------: |
+| Telegram, Email, Discord, Slack, Webhooks | Real-time KPIs, uptime %, response time | Shareable status board with 3 themes |       OpenRouter-powered incident analysis      |
+|     [Notifications](#-notifications) →    |        [Dashboard](#-features) →        |     [Status Pages](#-features) →     | [AI Explanations](#-ai-incident-explanations) → |
 
 </div>
 
 ---
 
-## ✨ What is PulseWatch?
-
-<img src="./docs/screenshots/dashboard.png" width="100%" alt="PulseWatch Dashboard"/>
-
-PulseWatch is a **full-stack, self-hosted uptime monitoring platform** for developers who want to know when their services break before users notice.
-
-It continuously checks HTTP/HTTPS endpoints and heartbeat monitors, records uptime and response-time data, automatically opens and resolves incidents, sends alerts through multiple channels, provides public status pages, and uses an AI model to explain incidents in plain English.
-
-### ☁️ Production runs on an Azure Virtual Machine
-
-PulseWatch is no longer dependent on Render or Neon for production. The current production deployment uses an **Azure Virtual Machine running Ubuntu 24.04 LTS** as the always-on backend VPS.
-
-The Azure VM hosts the persistent backend workload:
-
-- ⚡ **FastAPI API** for REST endpoints, authentication, and status pages
-- 🔍 **Monitoring worker** for scheduled uptime checks and incident detection
-- 🤖 **Telegram bot** using long-polling
-- 📡 **Notification dispatch** for incident and recovery alerts
-- 🗄️ **PostgreSQL** for the application's production data
-
-The production database is a **fresh, clean PostgreSQL database** for the current Azure deployment. **Neon is not used by the current production system.**
-
-The frontend is deployed separately and communicates with the Azure-hosted API over HTTPS.
-
-| 🔔 Alerts | 📊 Monitoring | 🌐 Status Pages | 🤖 AI |
-|:---:|:---:|:---:|:---:|
-| Telegram, Email, Discord, Slack, Webhooks | HTTP/HTTPS + Heartbeat | Shareable, auth-free pages | OpenRouter incident explanations |
-
----
+<div align="center">
 
 ## 🚀 Quick Start
 
-### Backend
+</div>
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Robibiruk/PulseWatch.git
-cd PulseWatch/backend
+cd PulseWatch
+```
+
+### 2. Backend
+
+```bash
+cd backend
 
 python3 -m venv .venv
-source .venv/bin/activate       # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate
+
 pip install -r requirements.txt
 
 cp .env.example .env
-# Set DATABASE_URL, SECRET_KEY and integration keys in .env
+nano .env
+```
 
+At minimum, configure:
+
+```env
+DATABASE_URL=postgresql+asyncpg://...
+SECRET_KEY=<long-random-secret>
+CORS_ORIGINS=http://localhost:5173
+```
+
+Start FastAPI:
+
+```bash
 uvicorn main:app --reload --port 8000
 ```
 
-API: `http://localhost:8000`  
-Swagger: `http://localhost:8000/docs`
+The API runs at:
 
-### Frontend
+```text
+http://localhost:8000
+```
+
+Interactive API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+### 3. Frontend
+
+Open another terminal:
 
 ```bash
 cd frontend
@@ -78,130 +118,440 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` and create an account.
+Open:
+
+```text
+http://localhost:5173
+```
+
+Register an account and add your first monitor.
 
 ---
+
+<div align="center">
+
+## 📸 See It in Action
+
+</div>
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./docs/screenshots/login.png" width="100%" alt="PulseWatch Login — dark theme with GitHub OAuth and email/password"/>
+      <br/>
+      <b>Login</b><br/>
+      <sub>JWT authentication + GitHub OAuth</sub>
+    </td>
+    <td align="center">
+      <img src="./docs/screenshots/dashboard.png" width="100%" alt="PulseWatch Dashboard — live monitor fleet with KPI cards"/>
+      <br/>
+      <b>Dashboard</b><br/>
+      <sub>Real-time KPIs + monitor fleet</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="./docs/screenshots/public-status.png" width="70%" alt="PulseWatch Public Status — shareable status board with service cards"/>
+      <br/>
+      <b>Public Status Page</b><br/>
+      <sub>Auth-free shareable board with neon, light, and minimal themes</sub>
+    </td>
+  </tr>
+</table>
+
+---
+
+<div align="center">
 
 ## ⚡ Features
 
-| Category | What you get |
-|:---|:---|
-| **Monitors** | HTTP/HTTPS, heartbeat push checks, configurable 1–30 min intervals, SSL and domain expiry checks |
-| **Checks** | Timeout, redirects, IPv4/IPv6, GET/HEAD/POST, basic/bearer auth, accepted status-code rules |
-| **Incidents** | Automatic open/resolve, failure threshold, recovery confirmation, duration and severity |
-| **Alerts** | Telegram, Email via Resend, Discord, Slack, generic JSON webhooks |
-| **Dashboard** | Fleet KPIs, uptime %, response time, filters and monitor details |
-| **Status Pages** | Public, auth-free pages with neon, light and minimal themes |
-| **Telegram Bot** | `/status`, `/monitors`, `/incidents`, `/pause`, `/resume`, `/help` |
-| **Authentication** | Email/password, JWT, bcrypt and API tokens |
-| **AI** | OpenRouter-powered incident explanations using `openai/gpt-oss-20b` |
-| **Self-hosting** | Persistent Azure VM deployment with an always-on monitoring worker |
+</div>
+
+<div align="center">
+
+| Category                  | What you get                                                                                                        |
+| :------------------------ | :------------------------------------------------------------------------------------------------------------------ |
+| **HTTP Monitoring**       | HTTP/HTTPS checks, configurable intervals, timeouts, redirects, HTTP methods, authentication, and status-code rules |
+| **Heartbeat Monitoring**  | Push-based monitoring for cron jobs, workers, and background services                                               |
+| **SSL Monitoring**        | SSL/TLS error detection and certificate expiry monitoring                                                           |
+| **Domain Monitoring**     | Domain expiry reminders                                                                                             |
+| **Alerts**                | Telegram, Email, Discord, Slack, and generic JSON webhooks                                                          |
+| **Dashboard**             | Real-time KPIs, uptime percentage, response times, filters, and monitor fleet                                       |
+| **Incidents**             | Automatic incident creation, recovery detection, duration tracking, and severity information                        |
+| **AI Analysis**           | OpenRouter-powered explanations based on actual monitoring evidence                                                 |
+| **Status Pages**          | Public, authentication-free status pages with three visual themes                                                   |
+| **Telegram Bot**          | `/status`, `/monitors`, `/incidents`, `/pause`, `/resume`, and `/help`                                              |
+| **Authentication**        | Email/password, JWT authentication, bcrypt password hashing, and API tokens                                         |
+| **Monitor Configuration** | Timeout, redirects, IP version, authentication, HTTP method, accepted status codes, and tags                        |
+
+</div>
 
 ---
+
+<div align="center">
 
 ## 🏗 Architecture
 
-<img src="./docs/diagrams/architecture.svg" width="100%" alt="PulseWatch production architecture — Vercel frontend, Azure VM backend, PostgreSQL, and OpenRouter AI"/>
+</div>
+
+<img src="./docs/diagrams/architecture.svg" width="100%" alt="PulseWatch production architecture — Vercel frontend, Azure Linux VM backend, PostgreSQL, OpenRouter AI, Telegram and notification services"/>
 
 ### Production architecture
 
+PulseWatch currently runs as a **self-hosted production deployment on an Azure Linux VM**.
+
+The React frontend is deployed separately and communicates with the FastAPI backend running on the Azure VM. The VM provides persistent compute for the API, monitoring worker, and Telegram bot.
+
+PostgreSQL provides persistent production storage, while OpenRouter provides AI-powered incident analysis.
+
 ```mermaid
 graph LR
-    FE[Vercel<br/>React + Vite] -->|HTTPS + JWT| API[Azure VM<br/>FastAPI]
-    API --> DB[(PostgreSQL<br/>Production DB)]
-    API --> AI[OpenRouter<br/>GPT-OSS-20B]
-    Worker[Azure VM<br/>Monitoring Worker] --> DB
-    Worker --> AI
-    Bot[Azure VM<br/>Telegram Bot] --> DB
-    Worker --> Notify[Notification Dispatcher]
-    Notify --> Channels[Telegram / Email / Discord / Slack / Webhook]
+    FE[Vercel<br/>React + Vite]
+    VM[Azure Linux VM<br/>FastAPI + Worker + Telegram Bot]
+    DB[(PostgreSQL<br/>Self-hosted)]
+    AI[OpenRouter<br/>GPT-OSS-20B]
+    TG[Telegram]
+    N[Email / Discord / Slack / Webhooks]
+
+    FE -->|REST + JWT| VM
+    VM --> DB
+    VM --> AI
+    VM --> TG
+    VM --> N
 ```
 
-**Frontend** → Vercel serves the React/Vite application.  
-**Azure VM** → Runs FastAPI, the monitoring scheduler/worker, and Telegram bot continuously.  
-**PostgreSQL** → Stores users, monitors, checks, incidents, status-page configuration, and alert settings.  
-**OpenRouter** → Generates plain-English incident explanations from monitoring evidence.  
-**Notifications** → The worker dispatches incident and recovery alerts to configured channels.
+### Azure VM
 
-The worker uses `SELECT FOR UPDATE SKIP LOCKED` to atomically claim due monitors. This is designed to prevent duplicate checks and duplicate alerts when multiple workers are active.
+The Azure VM is the persistent compute layer of the current production deployment.
+
+It runs:
+
+* FastAPI backend
+* Continuous monitoring worker
+* Telegram long-polling bot
+* PostgreSQL database
+* Incident detection and alert processing
+
+This architecture avoids the sleeping-worker limitations of free-tier application hosting and allows PulseWatch to perform continuous monitoring.
+
+### Monitoring pipeline
+
+```text
+Scheduler
+    ↓
+Find due monitors
+    ↓
+Claim monitor
+    ↓
+HTTP / HTTPS / Heartbeat probe
+    ↓
+Save check result
+    ↓
+Update monitor state
+    ↓
+Failure threshold reached?
+    ├── No → schedule confirmation check
+    └── Yes
+          ↓
+      Create incident
+          ↓
+      Analyze evidence with AI
+          ↓
+      Send notifications
+```
+
+### Claim-based worker design
+
+The scheduler uses database-backed monitor claims.
+
+For PostgreSQL deployments, due monitors are selected using row-level locking with `SKIP LOCKED`. A short lease prevents another worker from processing the same monitor simultaneously.
+
+This makes the monitoring engine **safe to scale horizontally later**, while the current production deployment uses the Azure VM as its persistent worker environment.
 
 ---
+
+<div align="center">
 
 ## 🚢 Production Deployment
 
-### Azure Virtual Machine
+</div>
 
-The production deployment uses an **Azure Virtual Machine running Ubuntu 24.04 LTS** as the self-hosted VPS.
+### Current production stack
 
-This VM is the core of PulseWatch's production infrastructure. An uptime monitor needs a runtime that stays available continuously, so the monitoring scheduler and Telegram long-polling bot are not placed on a sleeping serverless process.
+| Component             | Host                       | Purpose                                         |
+| :-------------------- | :------------------------- | :---------------------------------------------- |
+| **Frontend**          | Vercel                     | React + Vite web application                    |
+| **Backend API**       | Azure Linux VM             | FastAPI REST API                                |
+| **Monitoring Worker** | Azure Linux VM             | Continuous uptime checks and incident detection |
+| **Telegram Bot**      | Azure Linux VM             | Long-polling commands and Telegram alerts       |
+| **Database**          | PostgreSQL on Azure VM     | Persistent application and monitoring data      |
+| **AI**                | OpenRouter                 | Incident explanation and analysis               |
+| **Email**             | Resend                     | Email notifications                             |
+| **Notifications**     | Discord / Slack / Webhooks | Additional alert channels                       |
 
-| Component | Production location | Role |
-|:---|:---|:---|
-| **FastAPI** | **Azure VM** | REST API, authentication and application backend |
-| **Monitoring Worker** | **Azure VM** | Schedules probes and creates/resolves incidents |
-| **Telegram Bot** | **Azure VM** | Long-polling bot and account linking |
-| **PostgreSQL** | **Production database** | Persistent application data |
-| **Frontend** | **Vercel** | React/Vite SPA |
-| **AI** | **OpenRouter** | Incident explanations |
-| **Email** | **Resend** | Email notifications |
+### Azure deployment
 
-### Azure VM responsibilities
+The production backend is hosted on an **Azure Linux virtual machine**.
 
-The VM handles the always-on workload:
+The VM provides a persistent environment for PulseWatch instead of relying on a serverless or sleeping application instance.
 
-1. Accept API requests from the frontend.
-2. Run the monitoring scheduler continuously.
-3. Probe configured websites and services.
-4. Create and resolve incidents.
-5. Generate AI incident explanations through OpenRouter.
-6. Dispatch notifications.
-7. Keep the Telegram bot connected through long-polling.
-8. Restart backend services after crashes or VM reboots when configured with a process supervisor.
+The production database is a **fresh PostgreSQL database** used by this deployment. PulseWatch does **not** use Neon for its current production database.
 
-### Production database
+Production data includes:
 
-The current Azure deployment uses a **fresh PostgreSQL database**. It is not connected to the previous Neon project.
+* Users
+* Monitors
+* Historical checks
+* Incidents
+* AI explanations
+* Telegram connections
+* Notification settings
+* Public status pages
+* API tokens
 
-Set the production connection string through `DATABASE_URL` rather than committing database credentials to the repository.
+### Frontend
 
-### Production environment
+The frontend is deployed separately and communicates with the Azure-hosted API through the configured `VITE_API_BASE` URL.
 
 ```env
-DATABASE_URL=postgresql+asyncpg://...
-SECRET_KEY=<long-random-secret>
-CORS_ORIGINS=https://your-frontend-domain
-PUBLIC_BASE_URL=https://your-api-domain
-TELEGRAM_BOT_TOKEN=<bot-token>
-OPENROUTER_API_KEY=<openrouter-key>
-OPENROUTER_MODEL=openai/gpt-oss-20b
-RESEND_API_KEY=<resend-key>
+VITE_API_BASE=https://your-api-domain
 ```
 
-### Azure networking
+### Backend
 
-Configure the Azure **Network Security Group (NSG)** to expose only the ports required by the deployment. Use HTTPS for public API traffic, restrict SSH access where practical, and do not expose PostgreSQL directly to the public internet unless there is a specific reason to do so.
+The backend runs FastAPI together with the monitoring worker and Telegram bot.
 
-Run FastAPI, the monitoring worker, and Telegram bot under a process manager or service supervisor so they restart after failures and system reboots.
+A production process manager such as `systemd` should be used to keep the service running and automatically restart it if the process exits.
 
-> **Why Azure VM?** PulseWatch is itself an uptime monitor. Running its scheduler on a sleeping service would undermine the product. An always-on Azure VM provides the persistent runtime needed for continuous monitoring.
+Example service architecture:
+
+```text
+Azure VM
+├── PulseWatch FastAPI
+├── PulseWatch Worker
+├── PulseWatch Telegram Bot
+└── PostgreSQL
+```
 
 ---
 
+<div align="center">
+
 ## 🤖 AI Incident Explanations
 
-PulseWatch can send incident evidence to **OpenRouter** and generate a plain-English explanation of what may have caused the failure and how long recovery might typically take.
+</div>
+
+PulseWatch uses **OpenRouter** to analyze monitoring evidence when an incident is created.
 
 ### Current model
 
-```env
-OPENROUTER_MODEL=openai/gpt-oss-20b
+```text
+openai/gpt-oss-20b
 ```
 
-The previous `openai/gpt-oss-20b:free` model is **not used** because OpenRouter reports that the free variant is unavailable. The current production configuration uses `openai/gpt-oss-20b`.
+When a monitor reaches the configured failure threshold, PulseWatch sends evidence such as:
 
-The AI integration has been tested directly from the Azure VM and successfully returned an HTTP `200` response from OpenRouter using the current model configuration.
+* Current HTTP status code
+* Current error
+* Recent HTTP status codes
+* Failure pattern
 
-### Incident flow
+The model then generates a concise explanation of the most likely cause.
+
+Example evidence:
+
+```text
+Current HTTP status: 503
+Current error: Service unavailable
+Recent HTTP status codes: [200, 200, 503, 503, 503]
+```
+
+The AI can identify the important pattern:
+
+```text
+200 → 200 → 503 → 503 → 503
+```
+
+and explain that the service was previously responding normally before returning consecutive 503 responses.
+
+### Important limitation
+
+PulseWatch's AI does **not** have access to the monitored server's internal logs, CPU usage, memory usage, database state, or infrastructure configuration.
+
+Therefore, it should not claim to know the exact root cause when the evidence does not support it.
+
+For example, the AI may identify:
+
+* Application failure
+* Resource exhaustion
+* Dependency failure
+* Temporary service unavailability
+
+as possible causes, but it should clearly distinguish these from directly observed evidence.
+
+### Graceful fallback
+
+If OpenRouter is unavailable, incorrectly configured, or no API key is provided, PulseWatch falls back to deterministic rule-based explanations.
+
+Common fallback cases include:
+
+* HTTP 500
+* HTTP 502
+* HTTP 503
+* HTTP 504
+* Connection failures
+* DNS failures
+* Request timeouts
+
+This means incident detection and alerting continue even if the AI service is unavailable.
+
+---
+
+<div align="center">
+
+## 🔧 Environment Variables
+
+</div>
+
+### Core
+
+| Variable       | Default                  | Description                                    |
+| :------------- | :----------------------- | :--------------------------------------------- |
+| `DATABASE_URL` | *(required)*             | PostgreSQL async URL or SQLite development URL |
+| `SECRET_KEY`   | `dev-insecure-change-me` | JWT signing secret                             |
+| `CORS_ORIGINS` | `http://localhost:5173`  | Comma-separated allowed browser origins        |
+
+### Worker / Scheduler
+
+| Variable             | Default | Description                                              |
+| :------------------- | ------: | :------------------------------------------------------- |
+| `POLL_INTERVAL`      |    `15` | Scheduler tick interval in seconds                       |
+| `WORKER_CONCURRENCY` |    `20` | Maximum concurrent monitor checks                        |
+| `NO_WORKER`          | `false` | Disable the built-in worker                              |
+| `FAILURE_THRESHOLD`  |     `3` | Consecutive failures required before opening an incident |
+| `CONFIRMATION_DELAY` |    `10` | Delay before confirmation/recovery checks                |
+
+### Telegram
+
+| Variable             | Default | Description                       |
+| :------------------- | :------ | :-------------------------------- |
+| `TELEGRAM_BOT_TOKEN` | `""`    | Telegram bot token from BotFather |
+| `NO_TELEGRAM_BOT`    | `false` | Disable the Telegram bot          |
+
+### Email
+
+| Variable           | Default                 | Description             |
+| :----------------- | :---------------------- | :---------------------- |
+| `RESEND_API_KEY`   | `""`                    | Resend API key          |
+| `ALERT_FROM_EMAIL` | `alerts@yourdomain.com` | Verified sender address |
+
+### AI
+
+| Variable             | Default              | Description                      |
+| :------------------- | :------------------- | :------------------------------- |
+| `OPENROUTER_API_KEY` | `""`                 | OpenRouter API key               |
+| `OPENROUTER_MODEL`   | `openai/gpt-oss-20b` | Model used for incident analysis |
+
+### Frontend
+
+| Variable        | Default                 | Description          |
+| :-------------- | :---------------------- | :------------------- |
+| `VITE_API_BASE` | `http://localhost:8000` | Backend API base URL |
+
+> Full configuration is available in [`backend/.env.example`](backend/.env.example).
+
+---
+
+<div align="center">
+
+## 📡 API Reference
+
+</div>
+
+All authenticated routes require:
+
+```http
+Authorization: Bearer <jwt>
+```
+
+| Method   | Path                             | Description          |
+| :------- | :------------------------------- | :------------------- |
+| `POST`   | `/auth/register`                 | Register account     |
+| `POST`   | `/auth/token`                    | Login and obtain JWT |
+| `GET`    | `/auth/me`                       | Get current user     |
+| `GET`    | `/monitors`                      | List monitors        |
+| `POST`   | `/monitors`                      | Create monitor       |
+| `PATCH`  | `/monitors/:id`                  | Update monitor       |
+| `DELETE` | `/monitors/:id`                  | Delete monitor       |
+| `GET`    | `/monitors/summary`              | Monitor fleet KPIs   |
+| `GET`    | `/monitors/incidents`            | Recent incidents     |
+| `GET`    | `/status/:userId`                | Public status board  |
+| `POST`   | `/api/heartbeat/:token`          | Send heartbeat       |
+| `GET`    | `/status/health`                 | API health check     |
+| `POST`   | `/api/platform/tokens`           | Create API token     |
+| `POST`   | `/api/platform/account/password` | Change password      |
+
+Interactive Swagger documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+<div align="center">
+
+## 🤖 Telegram Bot
+
+</div>
+
+PulseWatch's Telegram bot uses **long-polling**, so no webhook configuration is required.
+
+| Command          | Description                                 |
+| :--------------- | :------------------------------------------ |
+| `/start <token>` | Connect Telegram to your PulseWatch account |
+| `/status`        | Show monitor status                         |
+| `/monitors`      | List monitors                               |
+| `/incidents`     | Show recent incidents                       |
+| `/pause`         | Pause alerts                                |
+| `/resume`        | Resume alerts                               |
+| `/help`          | Show available commands                     |
+
+### Connecting Telegram
+
+```text
+Dashboard
+    ↓
+Settings
+    ↓
+Connect Telegram
+    ↓
+Open Telegram deep link
+    ↓
+Press Start
+    ↓
+Account linked
+```
+
+---
+
+<div align="center">
+
+## 📬 Notifications
+
+</div>
+
+PulseWatch can send incident and recovery notifications through:
+
+* **Telegram**
+* **Email**
+* **Discord**
+* **Slack**
+* **Generic JSON webhooks**
+
+Channels are configured per user.
+
+When a monitor reaches the failure threshold:
 
 ```text
 Monitor failure
@@ -210,52 +560,154 @@ Failure threshold reached
       ↓
 Incident created
       ↓
-PulseWatch sends incident evidence to OpenRouter
+AI explanation generated
       ↓
-GPT-OSS-20B generates explanation
-      ↓
-Explanation stored on the incident
-      ↓
-Dashboard / notifications can display the explanation
+Notification dispatched
 ```
 
-The AI is an **explanation layer**, not a source of certainty. It receives monitoring evidence and produces likely causes. It should not be treated as proof of the actual root cause.
-
-> **Cost note:** `openai/gpt-oss-20b` is not a free model. OpenRouter charged approximately `$0.00000612` for the successful VM connectivity test performed during deployment verification. Actual cost depends on usage and token volume.
+When the monitor recovers, PulseWatch resolves the incident and sends a recovery notification.
 
 ---
 
-## 🛠 Tech Stack
+<div align="center">
 
-| Layer | Technology |
-|:---|:---|
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0 async, Pydantic v2 |
-| **Frontend** | React 18, Vite, TypeScript, React Router v6 |
-| **Database** | PostgreSQL in production, SQLite for development |
-| **Auth** | JWT, python-jose, bcrypt, API tokens |
-| **Notifications** | Telegram Bot API, Resend, Discord/Slack webhooks |
-| **AI** | OpenRouter, `openai/gpt-oss-20b` |
-| **Infrastructure** | Azure Virtual Machine, Ubuntu 24.04 LTS, Vercel |
+## 🧪 Monitor Types
+
+</div>
+
+### HTTP / HTTPS
+
+HTTP monitors support:
+
+* Configurable check interval
+* Request timeout
+* HTTP methods
+* Redirect following
+* IPv4 / IPv6 / automatic selection
+* Basic authentication
+* Bearer authentication
+* Accepted status-code groups
+* SSL/TLS checks
+* SSL certificate expiry reminders
+* Domain expiry reminders
+* Response-time tracking
+
+### Heartbeat
+
+Heartbeat monitoring is designed for services that cannot be continuously probed through a normal HTTP endpoint.
+
+Your application sends a request to:
+
+```text
+POST /api/heartbeat/:token
+```
+
+If PulseWatch does not receive a heartbeat within the expected interval, the monitor is considered down and an incident can be opened.
+
+This is useful for:
+
+* Cron jobs
+* Background workers
+* Scheduled scripts
+* Data pipelines
+* Internal services
 
 ---
+
+<div align="center">
+
+## ❤️ Reliability
+
+</div>
+
+PulseWatch uses a failure threshold to reduce false alarms.
+
+With the default configuration:
+
+```text
+Failure #1 → no incident
+Failure #2 → no incident
+Failure #3 → incident opened
+```
+
+A temporary one-request failure therefore does not immediately trigger an outage alert.
+
+When the service starts responding again:
+
+```text
+Service recovers
+      ↓
+Incident resolved
+      ↓
+Recovery duration calculated
+      ↓
+Recovery notification sent
+```
+
+---
+
+<div align="center">
+
+## 🔐 Production Security Checklist
+
+</div>
+
+Before exposing a deployment publicly:
+
+* [ ] Set `SECRET_KEY` to a long random value
+* [ ] Set `CORS_ORIGINS` to the real frontend domain
+* [ ] Never use `CORS_ORIGINS=*` in production
+* [ ] Use PostgreSQL for production
+* [ ] Keep `.env` out of Git
+* [ ] Rotate API keys if they are accidentally exposed
+* [ ] Keep `TELEGRAM_BOT_TOKEN` private
+* [ ] Keep `OPENROUTER_API_KEY` private
+* [ ] Put the API behind HTTPS
+* [ ] Use a reverse proxy such as Nginx or Caddy
+* [ ] Add rate limiting to authentication and public endpoints
+* [ ] Keep the Azure VM and system packages updated
+* [ ] Configure automatic service restart with `systemd`
+* [ ] Restrict unnecessary Azure VM inbound ports
+
+Generate a strong secret with:
+
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+---
+
+<div align="center">
 
 ## 📁 Project Layout
+
+</div>
 
 ```text
 PulseWatch/
 ├── backend/
 │   ├── main.py              # FastAPI app + lifespan
-│   ├── worker.py            # Monitor scheduler + claim locking
+│   ├── worker.py            # Monitoring scheduler and incident engine
 │   ├── checker.py           # HTTP, SSL and domain checks
 │   ├── telegram_bot.py      # Telegram bot + account linking
-│   ├── notifications.py     # Multi-channel alert dispatch
+│   ├── notifications.py     # Alert dispatch and notification formatting
 │   ├── emailer.py           # HTML email templates
-│   ├── ai_explain.py        # OpenRouter incident explanations
+│   ├── ai_explain.py        # OpenRouter AI incident analysis
 │   ├── models.py            # SQLAlchemy ORM models
 │   ├── schemas.py           # Pydantic schemas
-│   ├── database.py          # Database engine and migrations
+│   ├── database.py          # Database engine and initialization
 │   ├── config.py            # Application configuration
-│   └── routers/             # API route modules
+│   ├── requirements.txt      # Python dependencies
+│   └── routers/
+│       ├── auth.py
+│       ├── monitors.py
+│       ├── status.py
+│       ├── telegram.py
+│       ├── heartbeat.py
+│       ├── statuspage.py
+│       ├── notifications.py
+│       └── platform.py
+│
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx
@@ -264,158 +716,77 @@ PulseWatch/
 │   │   ├── components/
 │   │   └── pages/
 │   └── vite.config.ts
-├── docs-site/               # Docusaurus documentation
+│
+├── docs-site/
+│   ├── docs/
+│   └── blog/
+│
+├── docs/
+│   ├── diagrams/
+│   └── screenshots/
+│
 └── README.md
 ```
 
 ---
 
-## 🔧 Environment Variables
-
-### Core
-
-| Variable | Default | Description |
-|:---|:---|:---|
-| `DATABASE_URL` | required | PostgreSQL async URL in production or SQLite URL for development |
-| `SECRET_KEY` | `dev-insecure-change-me` | JWT signing secret |
-| `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
-| `PUBLIC_BASE_URL` | `http://localhost:8000` | Public API URL for generated links |
-
-### Worker
-
-| Variable | Default | Description |
-|:---|:---|:---|
-| `POLL_INTERVAL` | `15` | Scheduler tick in seconds |
-| `WORKER_CONCURRENCY` | `20` | Maximum concurrent checks |
-| `NO_WORKER` | `false` | Disable built-in worker |
-| `FAILURE_THRESHOLD` | `3` | Failures before opening an incident |
-| `CONFIRMATION_DELAY` | `10` | Recovery confirmation delay |
-
-### Integrations
-
-| Variable | Description |
-|:---|:---|
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token |
-| `NO_TELEGRAM_BOT` | Disable Telegram bot when `true` |
-| `RESEND_API_KEY` | Resend email API key |
-| `ALERT_FROM_EMAIL` | Verified sender address |
-| `OPENROUTER_API_KEY` | OpenRouter API key |
-| `OPENROUTER_MODEL` | OpenRouter model, currently `openai/gpt-oss-20b` |
-| `VITE_API_BASE` | Frontend API base URL |
-
-> See [`backend/.env.example`](backend/.env.example) for the complete configuration.
-
----
-
-## 📡 API Reference
-
-Authenticated routes require `Authorization: Bearer <jwt>`.
-
-| Method | Path | Description |
-|:---|:---|:---|
-| `POST` | `/auth/register` | Register |
-| `POST` | `/auth/token` | Login |
-| `GET` | `/auth/me` | Current user |
-| `GET` | `/monitors` | List monitors |
-| `POST` | `/monitors` | Create monitor |
-| `PATCH` | `/monitors/:id` | Update monitor |
-| `DELETE` | `/monitors/:id` | Delete monitor |
-| `GET` | `/monitors/summary` | Fleet KPIs |
-| `GET` | `/monitors/incidents` | Recent incidents |
-| `GET` | `/status/:userId` | Public status page |
-| `POST` | `/api/heartbeat/:token` | Heartbeat ping |
-| `GET` | `/status/health` | Health check |
-| `POST` | `/api/platform/tokens` | Create API token |
-| `POST` | `/api/platform/account/password` | Change password |
-
-Interactive Swagger documentation is available at `/docs`.
-
----
-
-## 🤖 Telegram Bot
-
-The bot uses **long-polling**, so no webhook setup is required.
-
-| Command | Description |
-|:---|:---|
-| `/start <token>` | Link Telegram to your account |
-| `/status` | Show monitor states |
-| `/monitors` | List monitors |
-| `/incidents` | Show recent incidents |
-| `/pause` | Pause alerts |
-| `/resume` | Resume alerts |
-| `/help` | Show commands |
-
-**Linking:** Dashboard → Settings → Connect Telegram → Telegram → Start.
-
-The bot runs continuously on the Azure VM in production.
-
----
-
-## 📬 Notifications
-
-When a monitor goes down or recovers, PulseWatch can dispatch alerts to every enabled channel:
-
-- **Telegram** — instant alerts through the linked bot
-- **Email** — branded HTML email via Resend
-- **Discord** — formatted webhook notification
-- **Slack** — incoming webhook notification
-- **Generic webhook** — JSON payload for custom integrations
-
-Channel enablement is configured per user, and alerts can be paused globally.
-
----
-
-## 🧪 Monitor Types
-
-### HTTP / HTTPS
-
-Configurable interval, timeout, redirects, IPv4/IPv6, GET/HEAD/POST methods, basic/bearer authentication, accepted status-code buckets, SSL checks, and domain expiry reminders.
-
-### Heartbeat (Push)
-
-Your service sends a heartbeat to a unique token URL (`POST /api/heartbeat/:token`). If a heartbeat does not arrive within the expected interval, PulseWatch opens an incident. This is useful for cron jobs, workers, and background processes without a public HTTP endpoint.
-
----
-
-## 🔐 Production Security Checklist
-
-- [ ] Use a long random `SECRET_KEY`.
-- [ ] Set `CORS_ORIGINS` to the real frontend domain. Never use `*` in production.
-- [ ] Use PostgreSQL in production.
-- [ ] Keep API keys and bot tokens out of Git.
-- [ ] Configure Azure NSG rules to expose only required ports.
-- [ ] Put the public API behind HTTPS and a reverse proxy.
-- [ ] Add rate limiting to authentication and heartbeat endpoints.
-- [ ] Restrict SSH access to the Azure VM where practical.
-- [ ] Run API, worker, and bot under a process supervisor.
-- [ ] Keep the Ubuntu Azure VM and installed packages patched.
-- [ ] Do not expose database credentials or internal exception details through public API responses.
-
----
+<div align="center">
 
 ## 🗺 Roadmap
 
+</div>
+
 ### Reliability
-- Alembic migrations
-- Durable Redis/RQ or ARQ job queue
-- Second-region confirmation
-- Rate limiting
-- Clear AI-vs-rule-based explanation state in the UI
+
+* Alembic migrations
+* Durable job queue
+* Second-region confirmation
+* Rate limiting
+* Better worker supervision
+* Monitoring worker health
 
 ### Features
-- Incident acknowledgement and assignment
-- Maintenance windows
-- Escalation policies
-- Monitor tags and groups
-- 30–90 day SLA charts
-- Docker Compose one-command self-hosting
-- Team accounts and RBAC
+
+* Incident acknowledgement
+* Maintenance windows
+* Escalation policies
+* Monitor tags and groups
+* Longer-term SLA charts
+* Team accounts and RBAC
+* More notification integrations
+
+### Infrastructure
+
+* Docker / Docker Compose deployment
+* Automated Azure deployment
+* Automated PostgreSQL backups
+* Multi-region monitoring
+* Distributed workers
 
 ### Scaling
-- **MVP:** ≤100 monitors, 1 worker, 1-minute checks
-- **Beta:** ~1k monitors, Redis queue, multiple workers
-- **Production:** 10k+ monitors, distributed workers across regions
+
+```text
+Current
+│
+├── Azure VM
+├── PostgreSQL
+├── 1 monitoring worker
+└── Continuous monitoring
+        │
+        ▼
+Next
+│
+├── Durable queue
+├── Multiple workers
+└── Better failure isolation
+        │
+        ▼
+Future
+│
+├── Multiple regions
+├── Distributed workers
+└── Large-scale monitoring
+```
 
 ---
 
@@ -423,13 +794,29 @@ Your service sends a heartbeat to a unique token URL (`POST /api/heartbeat/:toke
 
 ## 👤 Built by
 
+</div>
+
+<div align="center">
+
 **[Robel Biruk](https://www.linkedin.com/in/robel-biruk-5923101b5/)** — [@Robibiruk](https://github.com/Robibiruk)
 
+</div>
+
+---
+
+<div align="center">
+
 ## 📄 License
+
+</div>
+
+<div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
 MIT License — see [`LICENSE`](LICENSE) for details.
+
+<br/>
 
 **[⬆ Back to top](#-pulsewatch)**
 
