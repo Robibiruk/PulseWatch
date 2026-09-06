@@ -278,8 +278,24 @@ async def process_monitor(monitor_id: int) -> None:
             db.add(incident)
             await db.flush()  # get incident.id
             monitor.status = "down"
+            recent_result = await db.execute(
+                select(Check)
+                .where(Check.monitor_id == monitor.id)
+                .order_by(Check.checked_at.desc())
+                .limit(10)
+            )
+
+            recent_checks = list(reversed(recent_result.scalars().all()))
+
+            recent_codes = [
+                check.status_code
+                for check in recent_checks
+            ]
+
             explanation = await explain_incident(
-                result.status_code, result.error, [result.status_code]
+                result.status_code,
+                result.error,
+                recent_codes,
             )
             incident.ai_explanation = explanation
             text = (
