@@ -15,7 +15,7 @@
 # Please note this workflow do not integrate your GitHub Org with Microsoft Defender For DevOps. You have to create an integration
 # and provide permission before this can report data back to azure.
 # Read the official documentation here : https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-github
-
+#
 name: "Microsoft Defender For Devops"
 
 permissions:
@@ -36,16 +36,21 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          5.0.x
-          6.0.x
-    - name: Run Microsoft Security DevOps
-      uses: microsoft/security-devops-action@v1.6.0
-      id: msdo
-    - name: Upload results to Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: ${{ steps.msdo.outputs.sarifFile }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            5.0.x
+            6.0.x
+      - name: Run Microsoft Security DevOps
+        uses: microsoft/security-devops-action@v1.6.0
+        id: msdo
+        with:
+          # This repo does not contain any JavaScript/TypeScript files to lint,
+          # so excluding ESLint avoids the repository-wide "all files are ignored"
+          # failure that breaks the MSDO job.
+          tools: bandit,checkov,templateanalyzer
+      - name: Upload results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.msdo.outputs.sarifFile }}
