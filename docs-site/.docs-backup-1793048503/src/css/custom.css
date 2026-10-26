@@ -1,0 +1,319 @@
+/**
+ * PulseWatch docs overrides.
+ *
+ * Source: stitch_pulsewatch_docs_style/DESIGN.md + code.html
+ * Goal: high-contrast minimal dark/light docs site, no glassmorphism, hairline borders, Geist typography.
+ */
+
+/* ===== LIGHT THEME (default) ===== */
+:root {
+  --ifm-font-family-base: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-font-family-monospace: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --ifm-heading-font-family: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-font-size-base: 14px;
+  --ifm-line-height-base: 1.5;
+  --ifm-global-radius: 0.25rem;
+  --ifm-global-radius-sm: 0.15rem;
+  --ifm-global-radius-lg: 0.5rem;
+  --ifm-global-radius-xl: 0.75rem;
+  --ifm-container-width: 1200px;
+  --ifm-code-font-size: 0.875em;
+
+  /* Light theme tokens */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #fafafa;
+  --ifm-background-surface-color-transparent: transparent;
+  --ifm-font-color-base: #1a1a1a;
+  --ifm-font-color-secondary: #666;
+  --ifm-heading-color: #1a1a1a;
+  --ifm-border-color: rgba(0, 0, 0, 0.08);
+  --ifm-table-border-color: rgba(0, 0, 0, 0.08);
+  --ifm-hover-overlay: rgba(0, 0, 0, 0.04);
+  --ifm-color-primary: #1a1a1a;
+  --ifm-color-primary-dark: #000;
+  --ifm-color-primary-darker: #000;
+  --ifm-color-primary-darkest: #000;
+  --ifm-color-primary-light: #333;
+  --ifm-color-primary-lighter: #444;
+  --ifm-color-primary-lightest: #555;
+  --ifm-color-secondary: #444;
+  --ifm-color-secondary-dark: #666;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.85);
+  --ifm-navbar-shadow: none;
+  --ifm-footer-background-color: #fafafa;
+  --ifm-code-background: #f5f5f5;
+  --ifm-pre-background: #f5f5f5;
+  --ifm-table-stripe-color: rgba(0, 0, 0, 0.03);
+
+  color-scheme: light;
+}
+
+/* ===== DARK THEME ===== */
+html[data-theme='dark'] {
+  --ifm-background-color: #000;
+  --ifm-background-surface-color: #0a0a0a;
+  --ifm-background-surface-color-transparent: transparent;
+  --ifm-font-color-base: #fafafa;
+  --ifm-font-color-secondary: #888;
+  --ifm-heading-color: #fafafa;
+  --ifm-border-color: rgba(255, 255, 255, 0.08);
+  --ifm-table-border-color: rgba(255, 255, 255, 0.08);
+  --ifm-hover-overlay: rgba(255, 255, 255, 0.04);
+  --ifm-color-primary: #fafafa;
+  --ifm-color-primary-dark: #e5e2e1;
+  --ifm-color-primary-darker: #ccc;
+  --ifm-color-primary-darkest: #aaa;
+  --ifm-color-primary-light: #fff;
+  --ifm-color-primary-lightest: #fff;
+  --ifm-color-secondary: #c7c6c6;
+  --ifm-color-secondary-dark: #8e9192;
+  --ifm-navbar-background-color: rgba(0, 0, 0, 0.85);
+  --ifm-navbar-shadow: none;
+  --ifm-footer-background-color: #000;
+  --ifm-code-background: #000;
+  --ifm-pre-background: #000;
+  --ifm-table-stripe-color: rgba(255, 255, 255, 0.03);
+
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-family: 'Geist', system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--ifm-color-primary);
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--ifm-color-primary-light);
+}
+
+/* Containers and cards */
+.header-section,
+.navbar-sidebar,
+.card,
+.alert,
+.codeBlockContainer,
+div[data-theme='light'] .container,
+div[data-theme='dark'] .container {
+  border-radius: 0.5rem;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--ifm-border-color);
+  backdrop-filter: none;
+  background: var(--ifm-navbar-background-color);
+}
+.navbar__inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Hero */
+.hero {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.75rem;
+}
+.hero__title {
+  font-family: 'Geist', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+.hero__subtitle {
+  color: var(--ifm-font-color-secondary);
+}
+
+/* Content layout */
+article {
+  max-width: 840px;
+}
+.markdown h1 {
+  font-family: 'Geist', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+.markdown h2 {
+  font-family: 'Geist', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid var(--ifm-border-color);
+  padding-bottom: 0.25rem;
+}
+.markdown code,
+.codeBlockContainer {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  background: var(--ifm-code-background);
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.5rem;
+}
+.theme-code-block {
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.5rem;
+}
+
+/* Tables */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+thead tr th {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-font-color-secondary);
+  border-bottom: 1px solid var(--ifm-border-color);
+  background: var(--ifm-background-surface-color);
+}
+tbody tr td {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--ifm-font-color-base);
+  border-top: 1px solid var(--ifm-border-color);
+}
+tbody tr:nth-child(even) td {
+  background: var(--ifm-table-stripe-color);
+}
+
+/* Callouts / admonitions */
+.alert {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 0.5rem;
+  color: var(--ifm-font-color-base);
+}
+.alert--info {
+  border-left: 2px solid var(--ifm-color-primary);
+}
+
+/* Footer - white text in both themes */
+footer.footer {
+  border-top: 1px solid var(--ifm-border-color);
+  background: var(--ifm-footer-background-color);
+}
+
+/* Footer text - white in both themes */
+footer.footer,
+footer.footer *,
+footer.footer a,
+footer.footer a:link,
+footer.footer a:visited {
+  color: #ffffff;
+}
+
+/* Footer links hover */
+footer.footer a:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ifm-border-color);
+  border-radius: 4px;
+}
+
+/* Status dot helper */
+.pw-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: #4ade80;
+}
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.pw-pulse {
+  animation: subtle-pulse 2s infinite ease-in-out;
+}
+
+/* ===== THEME TOGGLE STYLES ===== */
+[data-theme] .theme-icon {
+  display: none;
+}
+[data-theme='light'] .theme-icon[data-theme='dark'],
+[data-theme='dark'] .theme-icon[data-theme='light'] {
+  display: inline;
+}
+
+/* Light theme navbar */
+[data-theme='light'] .navbar {
+  background: var(--ifm-navbar-background-color);
+}
+[data-theme='light'] .navbar__item--active a {
+  color: var(--ifm-color-primary);
+}
+
+/* Theme-aware buttons - both Get Started and GitHub buttons */
+/* Dark theme: white text on black background */
+html[data-theme='dark'] .button--primary,
+html[data-theme='dark'] .button--secondary {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+html[data-theme='dark'] .button--primary:hover,
+html[data-theme='dark'] .button--secondary:hover {
+  background-color: #1a1a1a !important;
+  border-color: #1a1a1a !important;
+}
+
+/* Light theme: black text on white background */
+html[data-theme='light'] .button--primary,
+html[data-theme='light'] .button--secondary {
+  background-color: #ffffff !important;
+  border-color: #000000 !important;
+  color: #000000 !important;
+}
+html[data-theme='light'] .button--primary:hover,
+html[data-theme='light'] .button--secondary:hover {
+  background-color: #f5f5f5 !important;
+  border-color: #e0e0e0 !important;
+}
+
+/* ===== SEARCH OVERLAYS FOR DARK THEME ===== */
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 {
+  background: var(--ifm-background-color);
+  box-shadow: inset 1px 1px 0 0 #2c2e40, 0 3px 8px 0 #000309;
+}
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2 {
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+}
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 {
+  color: #fff !important;
+  background-color: #111 !important;
+}
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 mark,
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 .hitTree_kk6K,
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 .hitIcon_a7Zy,
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 .hitPath_ieM4 {
+  color: #fff !important;
+}
+html[data-theme='dark'] .searchBar_RVTs .dropdownMenu_qbY6 .suggestion_fB_2.cursor_eG29 .hitWrapper_sAK8 mark {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+html[data-theme='dark'] .hitWrapper_sAK8 mark {
+  color: var(--ifm-color-white);
+  background: var(--ifm-color-primary-dark);
+  border-radius: 2px;
+  padding: 0 2px;
+}

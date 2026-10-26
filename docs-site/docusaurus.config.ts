@@ -10,6 +10,7 @@ const config: Config = {
   future: {
     v4: true,
   },
+  markdown: { mermaid: true },
 
   url: 'https://pulsewatch.dev',
   baseUrl: '/',
@@ -23,6 +24,11 @@ const config: Config = {
   },
 
   headTags: [
+    {
+      tagName: 'script',
+      attributes: {},
+      innerHTML: "try{if(sessionStorage.getItem('pw-booted')||matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.setAttribute('data-booted','1')}catch(e){}",
+    },
     {
       tagName: 'link',
       attributes: {
@@ -64,6 +70,7 @@ const config: Config = {
     ],
   ],
   themes: [
+    '@docusaurus/theme-mermaid',
     [
       '@easyops-cn/docusaurus-search-local',
       {
@@ -89,15 +96,11 @@ const config: Config = {
       items: [
         { type: 'docSidebar', sidebarId: 'mainSidebar', position: 'left', label: 'Docs' },
         { to: '/blog', label: 'Changelog', position: 'left' },
-        {
-          href: 'https://github.com/Robibiruk/PulseWatch',
-          label: 'GitHub',
-          position: 'right',
-        },
+        { type: 'custom-githubStar', position: 'right' },
       ],
     },
     footer: {
-      style: 'dark',
+      style: 'light',
       links: [
         {
           title: 'Documentation',
