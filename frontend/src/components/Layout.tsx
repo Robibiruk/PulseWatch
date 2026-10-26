@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 
 import { useAuth } from "../auth";
 import Icon from "./Icon";
 import { API_BASE } from "../api";
 import { DOCS_HOME_URL } from "../docsSite";
+import { useAppMotion } from "../hooks/useMotion";
 
 const SidebarCtx = createContext<{ open: boolean; setOpen: (v: boolean) => void } | null>(null);
 
@@ -206,6 +207,8 @@ export function Topbar({ title, sub, actions }: { title: string; sub?: string; a
 export function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  useAppMotion(mainRef as React.RefObject<HTMLElement>);
   const sequenceRef = useRef<string>("");
   const sequenceTimerRef = useRef<number | null>(null);
 
@@ -274,7 +277,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
           onCloseShortcuts={() => setShowShortcuts(false)}
           onCloseComing={() => {}}
         />
-        <main className="main">{children}</main>
+        <main className="main" ref={mainRef}>{children}</main>
+        <nav className="tabbar" aria-label="Primary">
+          {[
+            { to: "/dashboard", label: "Monitors", icon: "server" },
+            { to: "/incidents", label: "Incidents", icon: "alert" },
+            { to: "/settings", label: "Settings", icon: "settings" },
+            { to: "/profile", label: "Profile", icon: "users" },
+          ].map((t) => (
+            <NavLink key={t.to} to={t.to} className={({ isActive }) => "tab" + (isActive ? " active" : "")}>
+              <Icon name={t.icon} /> {t.label}
+            </NavLink>
+          ))}
+        </nav>
       </div>
     </SidebarCtx.Provider>
   );
